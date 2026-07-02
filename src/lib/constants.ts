@@ -3,6 +3,7 @@ import { ContactType, OpportunityStatus } from "@prisma/client";
 export const CONTACT_TYPE_LABELS: Record<ContactType, string> = {
   EMAIL: "Email",
   CALL: "Call",
+  LINKEDIN: "LinkedIn",
 };
 
 export const STATUS_LABELS: Record<OpportunityStatus, string> = {

@@ -155,7 +155,10 @@ export function OpportunityDashboard() {
   async function handleSubmit(values: OpportunityFormValues) {
     const payload = {
       ...values,
-      recruiterEmail: values.recruiterEmail.trim() || null,
+      recruiterEmail:
+        values.contactType === ContactType.LINKEDIN
+          ? ""
+          : values.recruiterEmail.trim() || null,
       roleTitle: values.roleTitle.trim() || null,
       notes: values.notes.trim() || null,
     };

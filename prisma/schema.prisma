@@ -11,6 +11,7 @@ datasource db {
 enum ContactType {
   EMAIL
   CALL
+  LINKEDIN
 }
 
 enum OpportunityStatus {

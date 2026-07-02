@@ -1,7 +1,7 @@
 "use client";
 
 import { ContactType, OpportunityStatus } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,14 +70,6 @@ export function OpportunityForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    setValues({
-      ...emptyOpportunityForm,
-      ...initialValues,
-    });
-    setErrors({});
-  }, [initialValues]);
-
   function updateField<K extends keyof OpportunityFormValues>(
     key: K,
     value: OpportunityFormValues[K],
@@ -86,6 +78,21 @@ export function OpportunityForm({
     setErrors((current) => {
       const next = { ...current };
       delete next[key];
+      return next;
+    });
+  }
+
+  function updateContactType(contactType: ContactType) {
+    setValues((current) => ({
+      ...current,
+      contactType,
+      recruiterEmail:
+        contactType === ContactType.LINKEDIN ? "" : current.recruiterEmail,
+    }));
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.contactType;
+      delete next.recruiterEmail;
       return next;
     });
   }
@@ -103,6 +110,7 @@ export function OpportunityForm({
       nextErrors.contactDate = "Contact date is required";
     }
     if (
+      values.contactType !== ContactType.LINKEDIN &&
       values.recruiterEmail.trim() &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.recruiterEmail.trim())
     ) {
@@ -134,9 +142,7 @@ export function OpportunityForm({
           <Label htmlFor="contactType">Contact Type</Label>
           <Select
             value={values.contactType}
-            onValueChange={(value) =>
-              updateField("contactType", value as ContactType)
-            }
+            onValueChange={(value) => updateContactType(value as ContactType)}
           >
             <SelectTrigger id="contactType">
               <SelectValue placeholder="Select type" />
@@ -173,7 +179,13 @@ export function OpportunityForm({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div
+        className={
+          values.contactType === ContactType.LINKEDIN
+            ? "space-y-2"
+            : "grid gap-4 sm:grid-cols-2"
+        }
+      >
         <div className="space-y-2">
           <Label htmlFor="recruiterName">Recruiter Name</Label>
           <Input
@@ -189,21 +201,23 @@ export function OpportunityForm({
           ) : null}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="recruiterEmail">Recruiter Email</Label>
-          <Input
-            id="recruiterEmail"
-            type="email"
-            value={values.recruiterEmail}
-            onChange={(event) =>
-              updateField("recruiterEmail", event.target.value)
-            }
-            placeholder="jane@company.com"
-          />
-          {errors.recruiterEmail ? (
-            <p className="text-sm text-red-600">{errors.recruiterEmail}</p>
-          ) : null}
-        </div>
+        {values.contactType !== ContactType.LINKEDIN ? (
+          <div className="space-y-2">
+            <Label htmlFor="recruiterEmail">Recruiter Email</Label>
+            <Input
+              id="recruiterEmail"
+              type="email"
+              value={values.recruiterEmail}
+              onChange={(event) =>
+                updateField("recruiterEmail", event.target.value)
+              }
+              placeholder="jane@company.com"
+            />
+            {errors.recruiterEmail ? (
+              <p className="text-sm text-red-600">{errors.recruiterEmail}</p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

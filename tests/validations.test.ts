@@ -68,6 +68,21 @@ describe("opportunityInputSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("stores an empty recruiter email for LinkedIn contacts", () => {
+    const result = opportunityInputSchema.safeParse({
+      contactType: "LINKEDIN",
+      status: "NEW",
+      recruiterName: "Alex Rivera",
+      companyName: "Northstar Labs",
+      contactDate: "2025-07-02",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.recruiterEmail).toBe("");
+    }
+  });
 });
 
 describe("opportunityUpdateSchema", () => {

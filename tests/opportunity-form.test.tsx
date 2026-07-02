@@ -1,3 +1,4 @@
+import { ContactType } from "@prisma/client";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -49,5 +50,23 @@ describe("OpportunityForm", () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(screen.getByText("Recruiter name is required")).toBeInTheDocument();
     expect(screen.getByText("Company name is required")).toBeInTheDocument();
+  });
+
+  it("hides recruiter email when LinkedIn is selected", () => {
+    const onSubmit = vi.fn();
+    const onCancel = vi.fn();
+
+    const { container } = render(
+      <OpportunityForm
+        initialValues={{ contactType: ContactType.LINKEDIN }}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />,
+    );
+
+    expect(
+      container.querySelector("#recruiterEmail"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/recruiter name/i)).toBeInTheDocument();
   });
 });
