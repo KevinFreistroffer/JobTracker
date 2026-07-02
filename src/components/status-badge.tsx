@@ -12,6 +12,7 @@ const statusBadgeVariants = cva(
         RESPONDED: "bg-blue-100 text-blue-700",
         MEETING_SCHEDULED: "bg-cyan-100 text-cyan-800",
         CODING_TEST: "bg-indigo-100 text-indigo-800",
+        TEST_FINISHED: "bg-violet-100 text-violet-800",
         INTERVIEWING: "bg-amber-100 text-amber-800",
         INTERVIEWED: "bg-purple-100 text-purple-700",
         OFFER: "bg-emerald-100 text-emerald-800",

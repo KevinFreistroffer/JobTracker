@@ -11,6 +11,7 @@ export const STATUS_LABELS: Record<OpportunityStatus, string> = {
   RESPONDED: "Responded",
   MEETING_SCHEDULED: "Meeting Scheduled",
   CODING_TEST: "Coding Test",
+  TEST_FINISHED: "Test Finished",
   INTERVIEWING: "Interviewing",
   INTERVIEWED: "Interviewed",
   OFFER: "Offer",

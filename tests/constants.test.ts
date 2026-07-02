@@ -31,4 +31,13 @@ describe("status constants", () => {
       expect.arrayContaining([{ value: "CODING_TEST", label: "Coding Test" }]),
     );
   });
+
+  it("includes Test Finished in labels and dropdown options", () => {
+    expect(STATUS_LABELS.TEST_FINISHED).toBe("Test Finished");
+    expect(STATUS_OPTIONS).toEqual(
+      expect.arrayContaining([
+        { value: "TEST_FINISHED", label: "Test Finished" },
+      ]),
+    );
+  });
 });
