@@ -17,6 +17,7 @@ enum ContactType {
 enum OpportunityStatus {
   NEW
   RESPONDED
+  MEETING_SCHEDULED
   INTERVIEWING
   INTERVIEWED
   OFFER

@@ -9,6 +9,7 @@ export const CONTACT_TYPE_LABELS: Record<ContactType, string> = {
 export const STATUS_LABELS: Record<OpportunityStatus, string> = {
   NEW: "New",
   RESPONDED: "Responded",
+  MEETING_SCHEDULED: "Meeting Scheduled",
   INTERVIEWING: "Interviewing",
   INTERVIEWED: "Interviewed",
   OFFER: "Offer",

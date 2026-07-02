@@ -12,7 +12,7 @@ A personal job tracking app for software developer roles. Log recruiter emails a
 ## Features
 
 - Unified list of recruiter emails and calls
-- Status dropdown: New, Responded, Interviewing, Interviewed, Offer, Rejected, No Response, Withdrawn
+- Status dropdown: New, Responded, Meeting Scheduled, Interviewing, Interviewed, Offer, Rejected, No Response, Withdrawn
 - Fields: recruiter name, email, company, role title, contact date, notes
 - Search and filter by status, contact type, company/recruiter/role
 - Sortable table (desktop) and card layout (mobile)
