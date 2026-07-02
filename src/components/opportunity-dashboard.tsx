@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   OpportunityForm,
   OpportunityFormValues,
@@ -321,51 +321,65 @@ export function OpportunityDashboard() {
               </TableRow>
             ) : (
               sortedOpportunities.map((opportunity) => (
-                <TableRow key={opportunity.id}>
-                  <TableCell>
-                    {format(new Date(opportunity.contactDate), "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {CONTACT_TYPE_LABELS[opportunity.contactType]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {opportunity.companyName}
-                  </TableCell>
-                  <TableCell>{opportunity.roleTitle ?? "—"}</TableCell>
-                  <TableCell>
-                    <div>{opportunity.recruiterName}</div>
-                    {opportunity.recruiterEmail ? (
-                      <div className="text-xs text-slate-500">
-                        {opportunity.recruiterEmail}
+                <Fragment key={opportunity.id}>
+                  <TableRow className={opportunity.notes ? "border-b-0" : ""}>
+                    <TableCell>
+                      {format(new Date(opportunity.contactDate), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {CONTACT_TYPE_LABELS[opportunity.contactType]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {opportunity.companyName}
+                    </TableCell>
+                    <TableCell>{opportunity.roleTitle ?? "—"}</TableCell>
+                    <TableCell>
+                      <div>{opportunity.recruiterName}</div>
+                      {opportunity.recruiterEmail ? (
+                        <div className="text-xs text-slate-500">
+                          {opportunity.recruiterEmail}
+                        </div>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={opportunity.status} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(opportunity)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeletingOpportunity(opportunity)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
                       </div>
-                    ) : null}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={opportunity.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(opportunity)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeletingOpportunity(opportunity)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                    </TableCell>
+                  </TableRow>
+                  {opportunity.notes ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="pt-0 text-sm text-slate-600">
+                        <span className="font-medium text-slate-500">
+                          Notes:{" "}
+                        </span>
+                        <span className="whitespace-pre-wrap">
+                          {opportunity.notes}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </Fragment>
               ))
             )}
           </TableBody>
@@ -404,6 +418,12 @@ export function OpportunityDashboard() {
                 <p>{opportunity.recruiterName}</p>
                 {opportunity.recruiterEmail ? (
                   <p>{opportunity.recruiterEmail}</p>
+                ) : null}
+                {opportunity.notes ? (
+                  <p className="whitespace-pre-wrap pt-1">
+                    <span className="font-medium text-slate-500">Notes: </span>
+                    {opportunity.notes}
+                  </p>
                 ) : null}
               </div>
               <div className="mt-4 flex gap-2">
