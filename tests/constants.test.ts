@@ -24,4 +24,11 @@ describe("status constants", () => {
       ]),
     );
   });
+
+  it("includes Coding Test in labels and dropdown options", () => {
+    expect(STATUS_LABELS.CODING_TEST).toBe("Coding Test");
+    expect(STATUS_OPTIONS).toEqual(
+      expect.arrayContaining([{ value: "CODING_TEST", label: "Coding Test" }]),
+    );
+  });
 });
