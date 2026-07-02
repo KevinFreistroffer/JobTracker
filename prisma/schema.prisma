@@ -29,15 +29,15 @@ enum OpportunityStatus {
 }
 
 model Opportunity {
-  id             String            @id @default(uuid())
-  contactType    ContactType
-  status         OpportunityStatus @default(NEW)
-  recruiterName  String
+  id             String             @id @default(uuid())
+  contactType    ContactType?
+  status         OpportunityStatus  @default(NEW)
+  recruiterName  String?
   recruiterEmail String?
-  companyName    String
+  companyName    String?
   roleTitle      String?
-  contactDate    DateTime
+  contactDate    DateTime?
   notes          String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 }

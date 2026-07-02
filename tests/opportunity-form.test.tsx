@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { OpportunityForm } from "@/components/opportunity-form";
 
 describe("OpportunityForm", () => {
-  it("renders required fields and submits valid values", async () => {
+  it("renders fields and submits valid values", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     const onCancel = vi.fn();
@@ -31,25 +31,29 @@ describe("OpportunityForm", () => {
     expect(onSubmit.mock.calls[0][0]).toMatchObject({
       recruiterName: "Jane Smith",
       companyName: "Acme Corp",
-      contactType: "EMAIL",
+      contactType: "",
       status: "NEW",
     });
   });
 
-  it("shows validation errors for missing required fields", async () => {
+  it("submits without filling any fields", async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
     const onCancel = vi.fn();
 
-    render(
-      <OpportunityForm onSubmit={onSubmit} onCancel={onCancel} />,
-    );
+    render(<OpportunityForm onSubmit={onSubmit} onCancel={onCancel} />);
 
     await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(onSubmit).not.toHaveBeenCalled();
-    expect(screen.getByText("Recruiter name is required")).toBeInTheDocument();
-    expect(screen.getByText("Company name is required")).toBeInTheDocument();
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({
+      contactType: "",
+      status: "NEW",
+      recruiterName: "",
+      companyName: "",
+      contactDate: "",
+      notes: "",
+    });
   });
 
   it("hides recruiter email when LinkedIn is selected", () => {

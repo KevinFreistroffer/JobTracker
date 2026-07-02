@@ -24,6 +24,20 @@ describe("opportunityInputSchema", () => {
     }
   });
 
+  it("accepts an opportunity with all fields empty", () => {
+    const result = opportunityInputSchema.safeParse({});
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.contactType).toBeNull();
+      expect(result.data.status).toBe("NEW");
+      expect(result.data.recruiterName).toBeNull();
+      expect(result.data.companyName).toBeNull();
+      expect(result.data.contactDate).toBeNull();
+      expect(result.data.notes).toBe("");
+    }
+  });
+
   it("normalizes empty optional fields", () => {
     const result = opportunityInputSchema.safeParse({
       contactType: "CALL",
@@ -73,18 +87,6 @@ describe("opportunityInputSchema", () => {
     if (result.success) {
       expect(result.data.notes).toBe("");
     }
-  });
-
-  it("rejects missing required fields", () => {
-    const result = opportunityInputSchema.safeParse({
-      contactType: "EMAIL",
-      status: "NEW",
-      recruiterName: "",
-      companyName: "",
-      contactDate: "2025-07-02",
-    });
-
-    expect(result.success).toBe(false);
   });
 
   it("rejects invalid recruiter email", () => {

@@ -123,10 +123,11 @@ export function OpportunityDashboard() {
     copy.sort((a, b) => {
       let comparison = 0;
       if (sortKey === "contactDate") {
-        comparison =
-          new Date(a.contactDate).getTime() - new Date(b.contactDate).getTime();
+        const aTime = a.contactDate ? new Date(a.contactDate).getTime() : 0;
+        const bTime = b.contactDate ? new Date(b.contactDate).getTime() : 0;
+        comparison = aTime - bTime;
       } else if (sortKey === "companyName") {
-        comparison = a.companyName.localeCompare(b.companyName);
+        comparison = (a.companyName ?? "").localeCompare(b.companyName ?? "");
       } else {
         comparison = a.status.localeCompare(b.status);
       }
@@ -157,11 +158,15 @@ export function OpportunityDashboard() {
   async function handleSubmit(values: OpportunityFormValues) {
     const payload = {
       ...values,
+      contactType: values.contactType || null,
+      recruiterName: values.recruiterName.trim() || null,
       recruiterEmail:
         values.contactType === ContactType.LINKEDIN
           ? ""
           : values.recruiterEmail.trim() || null,
+      companyName: values.companyName.trim() || null,
       roleTitle: values.roleTitle.trim() || null,
+      contactDate: values.contactDate || null,
       notes: values.notes.trim(),
     };
 
@@ -329,19 +334,28 @@ export function OpportunityDashboard() {
                 <Fragment key={opportunity.id}>
                   <TableRow className={opportunity.notes ? "border-b-0" : ""}>
                     <TableCell>
-                      {format(new Date(opportunity.contactDate), "MMM d, yyyy")}
+                      {opportunity.contactDate
+                        ? format(
+                            new Date(opportunity.contactDate),
+                            "MMM d, yyyy",
+                          )
+                        : "—"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary">
-                        {CONTACT_TYPE_LABELS[opportunity.contactType]}
-                      </Badge>
+                      {opportunity.contactType ? (
+                        <Badge variant="secondary">
+                          {CONTACT_TYPE_LABELS[opportunity.contactType]}
+                        </Badge>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {opportunity.companyName}
+                      {opportunity.companyName ?? "—"}
                     </TableCell>
                     <TableCell>{opportunity.roleTitle ?? "—"}</TableCell>
                     <TableCell>
-                      <div>{opportunity.recruiterName}</div>
+                      <div>{opportunity.recruiterName ?? "—"}</div>
                       {opportunity.recruiterEmail ? (
                         <div className="text-xs text-slate-500">
                           {opportunity.recruiterEmail}
@@ -402,7 +416,7 @@ export function OpportunityDashboard() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="font-semibold text-slate-900">
-                    {opportunity.companyName}
+                    {opportunity.companyName ?? "Company not specified"}
                   </h3>
                   <p className="text-sm text-slate-600">
                     {opportunity.roleTitle ?? "Role not specified"}
@@ -412,10 +426,14 @@ export function OpportunityDashboard() {
               </div>
               <div className="mt-3 space-y-1 text-sm text-slate-600">
                 <p>
-                  {format(new Date(opportunity.contactDate), "MMM d, yyyy")} ·{" "}
-                  {CONTACT_TYPE_LABELS[opportunity.contactType]}
+                  {opportunity.contactDate
+                    ? format(new Date(opportunity.contactDate), "MMM d, yyyy")
+                    : "Date not specified"}
+                  {opportunity.contactType
+                    ? ` · ${CONTACT_TYPE_LABELS[opportunity.contactType]}`
+                    : ""}
                 </p>
-                <p>{opportunity.recruiterName}</p>
+                <p>{opportunity.recruiterName ?? "Recruiter not specified"}</p>
                 {opportunity.recruiterEmail ? (
                   <p>{opportunity.recruiterEmail}</p>
                 ) : null}
@@ -483,7 +501,7 @@ export function OpportunityDashboard() {
             <AlertDialogTitle>Delete opportunity?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently remove the entry for{" "}
-              <strong>{deletingOpportunity?.companyName}</strong>.
+              <strong>{deletingOpportunity?.companyName ?? "this opportunity"}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

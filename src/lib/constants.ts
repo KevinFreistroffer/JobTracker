@@ -36,25 +36,25 @@ export const CONTACT_TYPE_OPTIONS = Object.entries(CONTACT_TYPE_LABELS).map(
 
 export type OpportunityRecord = {
   id: string;
-  contactType: ContactType;
+  contactType: ContactType | null;
   status: OpportunityStatus;
-  recruiterName: string;
+  recruiterName: string | null;
   recruiterEmail: string | null;
-  companyName: string;
+  companyName: string | null;
   roleTitle: string | null;
-  contactDate: string;
+  contactDate: string | null;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export const emptyOpportunityForm = {
-  contactType: "EMAIL" as ContactType,
+  contactType: "" as ContactType | "",
   status: "NEW" as OpportunityStatus,
   recruiterName: "",
   recruiterEmail: "",
   companyName: "",
   roleTitle: "",
-  contactDate: new Date().toISOString().slice(0, 10),
+  contactDate: "",
   notes: "",
 };

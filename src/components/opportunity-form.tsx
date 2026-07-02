@@ -21,7 +21,7 @@ import {
 } from "@/lib/constants";
 
 export type OpportunityFormValues = {
-  contactType: ContactType;
+  contactType: ContactType | "";
   status: OpportunityStatus;
   recruiterName: string;
   recruiterEmail: string;
@@ -46,13 +46,13 @@ export function toFormValues(
   }
 
   return {
-    contactType: opportunity.contactType,
+    contactType: opportunity.contactType ?? "",
     status: opportunity.status,
-    recruiterName: opportunity.recruiterName,
+    recruiterName: opportunity.recruiterName ?? "",
     recruiterEmail: opportunity.recruiterEmail ?? "",
-    companyName: opportunity.companyName,
+    companyName: opportunity.companyName ?? "",
     roleTitle: opportunity.roleTitle ?? "",
-    contactDate: opportunity.contactDate.slice(0, 10),
+    contactDate: opportunity.contactDate?.slice(0, 10) ?? "",
     notes: opportunity.notes ?? "",
   };
 }
@@ -100,15 +100,6 @@ export function OpportunityForm({
   function validate(): boolean {
     const nextErrors: Record<string, string> = {};
 
-    if (!values.recruiterName.trim()) {
-      nextErrors.recruiterName = "Recruiter name is required";
-    }
-    if (!values.companyName.trim()) {
-      nextErrors.companyName = "Company name is required";
-    }
-    if (!values.contactDate) {
-      nextErrors.contactDate = "Contact date is required";
-    }
     if (
       values.contactType !== ContactType.LINKEDIN &&
       values.recruiterEmail.trim() &&
@@ -141,11 +132,11 @@ export function OpportunityForm({
         <div className="space-y-2">
           <Label htmlFor="contactType">Contact Type</Label>
           <Select
-            value={values.contactType}
+            value={values.contactType || undefined}
             onValueChange={(value) => updateContactType(value as ContactType)}
           >
             <SelectTrigger id="contactType">
-              <SelectValue placeholder="Select type" />
+              <SelectValue placeholder="Optional" />
             </SelectTrigger>
             <SelectContent>
               {CONTACT_TYPE_OPTIONS.map((option) => (
@@ -196,9 +187,6 @@ export function OpportunityForm({
             }
             placeholder="Jane Smith"
           />
-          {errors.recruiterName ? (
-            <p className="text-sm text-red-600">{errors.recruiterName}</p>
-          ) : null}
         </div>
 
         {values.contactType !== ContactType.LINKEDIN ? (
@@ -229,9 +217,6 @@ export function OpportunityForm({
             onChange={(event) => updateField("companyName", event.target.value)}
             placeholder="Acme Corp"
           />
-          {errors.companyName ? (
-            <p className="text-sm text-red-600">{errors.companyName}</p>
-          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -253,9 +238,6 @@ export function OpportunityForm({
           value={values.contactDate}
           onChange={(event) => updateField("contactDate", event.target.value)}
         />
-        {errors.contactDate ? (
-          <p className="text-sm text-red-600">{errors.contactDate}</p>
-        ) : null}
       </div>
 
       <div className="space-y-2">

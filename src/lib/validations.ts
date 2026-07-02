@@ -5,15 +5,15 @@ const contactTypeSchema = z.nativeEnum(ContactType);
 const statusSchema = z.nativeEnum(OpportunityStatus);
 
 const opportunityObjectSchema = z.object({
-  contactType: contactTypeSchema,
-  status: statusSchema.default(OpportunityStatus.NEW),
-  recruiterName: z.string().trim().min(1, "Recruiter name is required"),
+  contactType: contactTypeSchema.nullable().optional(),
+  status: statusSchema.optional(),
+  recruiterName: z.string().trim().optional(),
   recruiterEmail: z.string().trim().optional(),
-  companyName: z.string().trim().min(1, "Company name is required"),
+  companyName: z.string().trim().optional(),
   roleTitle: z.string().trim().optional(),
-  contactDate: z.coerce.date({
-    errorMap: () => ({ message: "Contact date is required" }),
-  }),
+  contactDate: z
+    .union([z.string().trim(), z.date(), z.null()])
+    .optional(),
   notes: z.union([z.string().trim(), z.null()]).optional(),
 });
 
@@ -39,12 +39,30 @@ function validateRecruiterEmail(
   }
 }
 
-function normalizeOptionalText(value: string | undefined) {
+function normalizeOptionalText(value: string | null | undefined) {
   if (value === undefined) {
     return undefined;
   }
 
-  return value === "" ? null : value;
+  const trimmed = value?.trim() ?? "";
+  return trimmed === "" ? null : trimmed;
+}
+
+function normalizeContactDate(value: string | Date | null | undefined) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null || value === "") {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function normalizeNotes(value: string | null | undefined, defaultValue?: string) {
@@ -57,14 +75,28 @@ function normalizeNotes(value: string | null | undefined, defaultValue?: string)
 
 function normalizeOpportunity<T extends Partial<OpportunityObject>>(
   data: T,
-  options: { defaultNotes?: string } = {},
+  options: { defaultNotes?: string; defaultStatus?: OpportunityStatus } = {},
 ) {
   const roleTitle = normalizeOptionalText(data.roleTitle);
   const notes = normalizeNotes(data.notes, options.defaultNotes);
+  const recruiterName = normalizeOptionalText(data.recruiterName);
+  const companyName = normalizeOptionalText(data.companyName);
+  const contactDate = normalizeContactDate(data.contactDate);
+  const contactType =
+    data.contactType === undefined ? undefined : data.contactType ?? null;
+  const status =
+    data.status === undefined
+      ? options.defaultStatus
+      : data.status ?? OpportunityStatus.NEW;
 
   if (data.contactType === ContactType.LINKEDIN) {
     return {
       ...data,
+      contactType,
+      status,
+      recruiterName,
+      companyName,
+      contactDate,
       recruiterEmail: "",
       roleTitle,
       notes,
@@ -80,6 +112,11 @@ function normalizeOpportunity<T extends Partial<OpportunityObject>>(
 
   return {
     ...data,
+    contactType,
+    status,
+    recruiterName,
+    companyName,
+    contactDate,
     recruiterEmail,
     roleTitle,
     notes,
@@ -88,7 +125,23 @@ function normalizeOpportunity<T extends Partial<OpportunityObject>>(
 
 export const opportunityInputSchema = opportunityObjectSchema
   .superRefine(validateRecruiterEmail)
-  .transform((data) => normalizeOpportunity(data, { defaultNotes: "" }));
+  .transform((data) => {
+    const normalized = normalizeOpportunity(data, {
+      defaultNotes: "",
+      defaultStatus: OpportunityStatus.NEW,
+    });
+
+    return {
+      contactType: normalized.contactType ?? null,
+      status: normalized.status ?? OpportunityStatus.NEW,
+      recruiterName: normalized.recruiterName ?? null,
+      recruiterEmail: normalized.recruiterEmail ?? null,
+      companyName: normalized.companyName ?? null,
+      roleTitle: normalized.roleTitle ?? null,
+      contactDate: normalized.contactDate ?? null,
+      notes: normalized.notes ?? "",
+    };
+  });
 
 export const opportunityUpdateSchema = opportunityObjectSchema
   .partial()
@@ -99,7 +152,7 @@ export const opportunityUpdateSchema = opportunityObjectSchema
 
     validateRecruiterEmail(
       {
-        contactType: data.contactType ?? ContactType.EMAIL,
+        contactType: data.contactType ?? null,
         recruiterEmail: data.recruiterEmail,
       },
       ctx,
@@ -111,13 +164,13 @@ export type OpportunityInput = z.infer<typeof opportunityInputSchema>;
 export type OpportunityUpdateInput = z.infer<typeof opportunityUpdateSchema>;
 
 export function serializeOpportunity<T extends {
-  contactDate: Date;
+  contactDate: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }>(opportunity: T) {
   return {
     ...opportunity,
-    contactDate: opportunity.contactDate.toISOString(),
+    contactDate: opportunity.contactDate?.toISOString() ?? null,
     createdAt: opportunity.createdAt.toISOString(),
     updatedAt: opportunity.updatedAt.toISOString(),
   };
