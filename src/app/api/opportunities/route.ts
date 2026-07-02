@@ -1,6 +1,7 @@
 import { ContactType, OpportunityStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { toErrorResponse } from "@/lib/api-error";
 import {
   opportunityInputSchema,
   serializeOpportunity,
@@ -53,11 +54,7 @@ export async function GET(request: NextRequest) {
       opportunities.map((opportunity) => serializeOpportunity(opportunity)),
     );
   } catch (error) {
-    console.error("GET /api/opportunities failed:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch opportunities" },
-      { status: 500 },
-    );
+    return toErrorResponse("Failed to fetch opportunities", error);
   }
 }
 
@@ -79,10 +76,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(serializeOpportunity(opportunity), { status: 201 });
   } catch (error) {
-    console.error("POST /api/opportunities failed:", error);
-    return NextResponse.json(
-      { error: "Failed to create opportunity" },
-      { status: 500 },
-    );
+    return toErrorResponse("Failed to create opportunity", error);
   }
 }

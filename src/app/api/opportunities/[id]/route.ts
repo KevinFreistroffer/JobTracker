@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { toErrorResponse } from "@/lib/api-error";
 import {
   opportunityUpdateSchema,
   serializeOpportunity,
@@ -23,11 +24,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(serializeOpportunity(opportunity));
   } catch (error) {
-    console.error("GET /api/opportunities/[id] failed:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch opportunity" },
-      { status: 500 },
-    );
+    return toErrorResponse("Failed to fetch opportunity", error);
   }
 }
 
@@ -59,11 +56,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(serializeOpportunity(opportunity));
   } catch (error) {
-    console.error("PATCH /api/opportunities/[id] failed:", error);
-    return NextResponse.json(
-      { error: "Failed to update opportunity" },
-      { status: 500 },
-    );
+    return toErrorResponse("Failed to update opportunity", error);
   }
 }
 
@@ -82,10 +75,6 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     await prisma.opportunity.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/opportunities/[id] failed:", error);
-    return NextResponse.json(
-      { error: "Failed to delete opportunity" },
-      { status: 500 },
-    );
+    return toErrorResponse("Failed to delete opportunity", error);
   }
 }
