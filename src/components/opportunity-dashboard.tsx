@@ -1,5 +1,6 @@
 "use client";
 
+import { ContactType } from "@prisma/client";
 import { format } from "date-fns";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
