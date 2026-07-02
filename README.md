@@ -38,6 +38,7 @@ cp .env.example .env
 
 ```env
 DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+DATABASE_URL_UNPOOLED="postgresql://user:password@direct-host/dbname?sslmode=require"
 ```
 
 ### 3. Run migrations
@@ -65,7 +66,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start development server |
-| `npm run build` | Generate Prisma client and build for production |
+| `npm run build` | Generate Prisma client, apply production migrations, and build |
 | `npm run start` | Start production server |
 | `npm run test` | Run Vitest tests |
 | `npm run db:migrate` | Apply migrations in development |
@@ -78,17 +79,9 @@ Open [http://localhost:3000](http://localhost:3000).
 2. Import the project in the [Vercel dashboard](https://vercel.com/new).
 3. Add a database:
    - **Storage** tab → **Create Database** → **Postgres** (Neon), or
-   - Connect an existing Neon project and add `DATABASE_URL` under **Settings → Environment Variables**.
-4. Vercel will run `prisma generate` via the `postinstall` script and `next build` via the `build` script.
-5. After the first deploy, run migrations against production:
-
-   ```bash
-   npx prisma migrate deploy
-   ```
-
-   Use the production `DATABASE_URL` from Vercel (via Vercel CLI or a one-off deploy hook).
-
-6. Redeploy if needed. Your app will persist data in Postgres across sessions.
+   - Connect an existing Neon project and add `DATABASE_URL` and `DATABASE_URL_UNPOOLED` under **Settings → Environment Variables**.
+4. Vercel will run `prisma generate`, `prisma migrate deploy`, and `next build` via the `build` script.
+5. Redeploy if needed. Your app will persist data in Postgres across sessions.
 
 ### Free tier notes
 

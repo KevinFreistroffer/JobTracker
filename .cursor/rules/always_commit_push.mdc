@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Always commit and push using the /push skill after any changes you make.
