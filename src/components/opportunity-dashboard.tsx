@@ -162,7 +162,7 @@ export function OpportunityDashboard() {
           ? ""
           : values.recruiterEmail.trim() || null,
       roleTitle: values.roleTitle.trim() || null,
-      notes: values.notes.trim() || null,
+      notes: values.notes.trim(),
     };
 
     const response = await fetch(

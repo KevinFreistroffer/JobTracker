@@ -24,7 +24,7 @@ describe("opportunityInputSchema", () => {
     }
   });
 
-  it("transforms empty optional fields to null", () => {
+  it("normalizes empty optional fields", () => {
     const result = opportunityInputSchema.safeParse({
       contactType: "CALL",
       status: "INTERVIEWING",
@@ -40,7 +40,38 @@ describe("opportunityInputSchema", () => {
     if (result.success) {
       expect(result.data.recruiterEmail).toBeNull();
       expect(result.data.roleTitle).toBeNull();
-      expect(result.data.notes).toBeNull();
+      expect(result.data.notes).toBe("");
+    }
+  });
+
+  it("defaults missing notes to an empty string", () => {
+    const result = opportunityInputSchema.safeParse({
+      contactType: "EMAIL",
+      status: "NEW",
+      recruiterName: "Jane Smith",
+      companyName: "Acme Corp",
+      contactDate: "2025-07-02",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.notes).toBe("");
+    }
+  });
+
+  it("accepts null notes and stores an empty string", () => {
+    const result = opportunityInputSchema.safeParse({
+      contactType: "EMAIL",
+      status: "NEW",
+      recruiterName: "Jane Smith",
+      companyName: "Acme Corp",
+      contactDate: "2025-07-02",
+      notes: null,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.notes).toBe("");
     }
   });
 
@@ -96,6 +127,17 @@ describe("opportunityUpdateSchema", () => {
     if (result.success) {
       expect(result.data.status).toBe("INTERVIEWED");
       expect(result.data.notes).toBe("Completed technical round");
+    }
+  });
+
+  it("does not add notes when omitted from a partial update", () => {
+    const result = opportunityUpdateSchema.safeParse({
+      status: "INTERVIEWED",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.notes).toBeUndefined();
     }
   });
 });

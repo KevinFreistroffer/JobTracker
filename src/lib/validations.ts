@@ -14,7 +14,7 @@ const opportunityObjectSchema = z.object({
   contactDate: z.coerce.date({
     errorMap: () => ({ message: "Contact date is required" }),
   }),
-  notes: z.string().trim().optional(),
+  notes: z.union([z.string().trim(), z.null()]).optional(),
 });
 
 type OpportunityObject = z.infer<typeof opportunityObjectSchema>;
@@ -47,9 +47,20 @@ function normalizeOptionalText(value: string | undefined) {
   return value === "" ? null : value;
 }
 
-function normalizeOpportunity<T extends Partial<OpportunityObject>>(data: T) {
+function normalizeNotes(value: string | null | undefined, defaultValue?: string) {
+  if (value === undefined) {
+    return defaultValue;
+  }
+
+  return value ? value : "";
+}
+
+function normalizeOpportunity<T extends Partial<OpportunityObject>>(
+  data: T,
+  options: { defaultNotes?: string } = {},
+) {
   const roleTitle = normalizeOptionalText(data.roleTitle);
-  const notes = normalizeOptionalText(data.notes);
+  const notes = normalizeNotes(data.notes, options.defaultNotes);
 
   if (data.contactType === ContactType.LINKEDIN) {
     return {
@@ -77,7 +88,7 @@ function normalizeOpportunity<T extends Partial<OpportunityObject>>(data: T) {
 
 export const opportunityInputSchema = opportunityObjectSchema
   .superRefine(validateRecruiterEmail)
-  .transform((data) => normalizeOpportunity(data));
+  .transform((data) => normalizeOpportunity(data, { defaultNotes: "" }));
 
 export const opportunityUpdateSchema = opportunityObjectSchema
   .partial()
