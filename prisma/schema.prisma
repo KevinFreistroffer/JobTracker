@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ContactType {
+  EMAIL
+  CALL
+}
+
+enum OpportunityStatus {
+  NEW
+  RESPONDED
+  INTERVIEWING
+  INTERVIEWED
+  OFFER
+  REJECTED
+  NO_RESPONSE
+  WITHDRAWN
+}
+
+model Opportunity {
+  id             String            @id @default(uuid())
+  contactType    ContactType
+  status         OpportunityStatus @default(NEW)
+  recruiterName  String
+  recruiterEmail String?
+  companyName    String
+  roleTitle      String?
+  contactDate    DateTime
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
