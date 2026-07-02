@@ -9,6 +9,7 @@ import {
   OpportunityFormValues,
   toFormValues,
 } from "@/components/opportunity-form";
+import { NotesPreview } from "@/components/notes-preview";
 import { StatusBadge } from "@/components/status-badge";
 import {
   AlertDialog,
@@ -374,12 +375,7 @@ export function OpportunityDashboard() {
                   {opportunity.notes ? (
                     <TableRow>
                       <TableCell colSpan={7} className="pt-0 text-sm text-slate-600">
-                        <span className="font-medium text-slate-500">
-                          Notes:{" "}
-                        </span>
-                        <span className="whitespace-pre-wrap">
-                          {opportunity.notes}
-                        </span>
+                        <NotesPreview notes={opportunity.notes} />
                       </TableCell>
                     </TableRow>
                   ) : null}
@@ -424,10 +420,10 @@ export function OpportunityDashboard() {
                   <p>{opportunity.recruiterEmail}</p>
                 ) : null}
                 {opportunity.notes ? (
-                  <p className="whitespace-pre-wrap pt-1">
-                    <span className="font-medium text-slate-500">Notes: </span>
-                    {opportunity.notes}
-                  </p>
+                  <NotesPreview
+                    notes={opportunity.notes}
+                    className="block pt-1"
+                  />
                 ) : null}
               </div>
               <div className="mt-4 flex gap-2">
