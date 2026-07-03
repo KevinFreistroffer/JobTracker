@@ -1,51 +1,74 @@
-Kevin Freistroffer
-Chicago, IL | (442) 999-0986 | kfreistroffer@gmail.com | GitHub | LinkedIn
-Summary
-Senior Full-stack Software Engineer with 8+ years of experience designing and delivering scalable web
-applications, enterprise solutions, microservice and micro frontends, and AWS-orchestrated software
-with Cursor, Claude and AI. AWS Certified Cloud Practitioner. 15+ years of programming experience.
-Experience
-Capital One | Software Engineer - Contract | Chicago, IL May 2025 – June 2026
-• Delivered end-to-end features for full-stack web applications with TypeScript, React, Python, and
-Claude within a distributed AWS-orchestrated microservice ecosystem across 40+ repositories.
-• Designed, implemented, and maintained AWS serverless workflows using Lambda, Step
-Functions, Glue, Batch, DynamoDB, S3, IAM, Secrets Manager, and CloudWatch.
-• Provided production support for 1,000+ internal platform users through PagerDuty incident
-response, backend service debugging, root-cause analysis, bug triage, documentation, and
-stakeholder communication.
-• Increased quality and productivity of engineering output through responsible AI usage with
-Claude, custom skills, and RAG to generate and review code, Jira to pull-request workflows,
-debug Jenkins, conduct technical research, and automate documenting and data entry tasks.
-Capital One | Software Engineer - Contract | Remote Aug 2021 – March 2024
-• Supported a data governance platform for 1,000+ internal users—AWS dataset registration,
-metadata requirements, and regex-driven exclusion and custom data workflows.
-• Collaborated with teammates to deliver full-stack features in React, TypeScript, Python,
-DynamoDB, S3, RDS, PostgreSQL and Lambda: dataset search and filtering, backend APIs, custom
-filters, and governance automation.
-• Improved quality and delivery through unit, regression and performance testing, Jenkins CI/CD,
-operational AWS QuickSight dashboard, and technical documentation.
-Cisco | Software Engineer | Remote June 2021 – Aug 2021
-• Implemented PHP/SQL feature work and bug fixes; evaluated calendar integration options.
-Thermo Fisher | Frontend Developer - Contract | Remote Sep 2020 – April 2021
-• Built React and TypeScript user interfaces for order history and order details on a public-facing
-Thermo Fisher Scientific e-commerce site, using Figma designs and shared component libraries.
-• Developed strongly typed components and data models to support consistent display of order
-status, line items, and related customer order data.
-• Supported sprint releases with unit tests, deployment validation, and bug fixes on ordermanagement flows.
-Google | AngularDart Developer - Contract | San Jose, CA Nov 2019 – May 2020
-• Migrated Angular/TypeScript services to AngularDart with feature parity in a large monorepo.
-• Designed and implemented a proxy layer between application HTTP services and SAP.
-Apple | Technical Lead – Contract | San Jose, CA July 2019 – Oct 2019
-• Built Angular with TypeScript user interfaces from Figma for an internal equipment ordering app,
-integrated with backend APIs.
-• Implemented form validation, submission, and error-handling workflows.
-ImYourDoc | Frontend Developer - Contract | Remote April 2018 – Feb 2019
-• Delivered front-end enhancements and bug fixes on a React telehealth app.
-Certifications
- AWS Certified Cloud Practitioner (Aug 2024)
-Badge ID: 0861f4d2-046c-423c-877d-3e7361429639
-Skills
-Languages: JavaScript, TypeScript, Python, Scala, Dart, PHP, HTML, CSS
-Frameworks: React, Next.js, Angular, Node.js, FastAPI, Django, Playwright, Cypress, Behave, Jest
-Technologies: Git, AWS, Cursor, Claude, Copilot, Windsurf, RAG, unit, component and performance
-testing, Jenkins Docker
+Kevin Freistroffer 
+
+Chicago, IL | (442) 999-0986 | kfreistroffer@gmail.com | GitHub | LinkedIn 
+
+Summary 
+
+Senior Full-Stack Software Engineer with 7+ years of experience delivering scalable web applications, enterprise solutions, microservices, and micro frontends, with hands-on AWS and AI-assisted development workflows. AWS Certified Cloud Practitioner with 15+ years of programming experience. 
+
+Experience 
+
+Capital One | Software Engineer - Contract | Chicago, IL                                           May 2025 – June 2026 
+
+Supported multiple production codebases using React, TypeScript, Python, Scala, AWS, and infrastructure tooling, delivering focused updates such as UI modals, API response fields, build configuration changes, test improvements, and observability enhancements. 
+
+Strengthened CI test coverage and execution clarity by separating mocked component tests from live dependency tests in Jenkins, reducing duplicate test execution and improving confidence in Python Behave/Gherkin end-to-end flows. 
+
+Expanded monitoring for Scala Glue jobs by adding Telemetry-emitted runtime metrics consumed in New Relic dashboards and designed a broader per-job-run metrics implementation. 
+
+Provided production support for 1,000+ internal platform users through PagerDuty incident response, root-cause analysis, and bug triage using AWS, Splunk, Observe, and New Relic. 
+
+Integrated Claude Code, custom Claude skills, and the company’s internal AI harness as the first step of implementation work, improving development speed, code quality, and test coverage. 
+
+Capital One | Software Engineer - Contract | Remote                                              Aug 2021 – March 2024 
+
+Supported a data governance platform for 1,000+ internal users—AWS dataset registration, metadata requirements, and regex-driven exclusion and custom data workflows. 
+
+Collaborated with teammates to deliver full-stack features in React, TypeScript, Python, DynamoDB, S3, RDS, PostgreSQL, and Lambda: dataset search and filtering, backend APIs, custom filters, and governance automation. 
+
+Improved quality and delivery through unit, regression, and performance testing, Jenkins CI/CD, operational AWS QuickSight dashboard, and technical documentation. 
+
+Cisco | Software Engineer | Remote	                                                                                June 2021 – Aug 2021 
+
+Implemented PHP/SQL feature work and bug fixes; evaluated calendar integration options. 
+
+Thermo Fisher | Frontend Developer - Contract | Remote	                                        Sep 2020 – April 2021 
+
+Built React and TypeScript user interfaces for order history and order details on a public-facing Thermo Fisher Scientific e-commerce site, using Figma designs and shared component libraries. 
+
+Developed strongly typed components and data models to support consistent display of order status, line items, and related customer order data. 
+
+Supported sprint releases with unit tests, deployment validation, and bug fixes on order-management flows. 
+
+Google | AngularDart Developer - Contract | San Jose, CA	                                         Nov 2019 – May 2020 
+
+Migrated Angular/TypeScript services to AngularDart with feature parity in a large monorepo. 
+
+Designed and implemented a proxy layer between Angular HTTP services and an SAP database. 
+
+Apple | Technical Lead – Contract | San Jose, CA                                                            July 2019 – Oct 2019 
+
+Built Angular with TypeScript user interfaces from Figma for an internal equipment ordering app, integrated with backend APIs. 
+
+Implemented form validation, submission, and error-handling workflows. 
+
+ImYourDoc | Frontend Developer - Contract | Remote                                                April 2018 – Feb 2019 
+
+Delivered front-end enhancements and bug fixes on a React telehealth app. 
+
+ 
+
+Certifications 
+
+    AWS Certified Cloud Practitioner (Aug 2024) 
+
+Badge ID: 0861f4d2-046c-423c-877d-3e7361429639 
+
+Skills 
+
+Languages: JavaScript, TypeScript, Python, Scala, Dart, PHP, HTML, CSS 
+Frontend: React, Next.js, Angular, AngularDart, Jest, Cypress, Playwright 
+Backend: Node.js, Express, FastAPI, Django, Behave, REST APIs 
+Cloud & DevOps: AWS, Lambda, Step Functions, Glue, DynamoDB, S3, RDS, PostgreSQL, Jenkins, Docker 
+Observability: New Relic, Splunk, Observe, CloudWatch, Telemetry 
+AI Tools: Claude Code, Cursor, Copilot, Windsurf, custom Claude skills, RAG 
