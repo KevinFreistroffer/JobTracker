@@ -18,5 +18,9 @@ describe("AppNav", () => {
       "href",
       "/why-work-here",
     );
+    expect(screen.getByRole("link", { name: "Cover Letter" })).toHaveAttribute(
+      "href",
+      "/cover-letter",
+    );
   });
 });
