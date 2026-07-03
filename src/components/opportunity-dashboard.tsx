@@ -53,6 +53,7 @@ import {
   OpportunityRecord,
   STATUS_OPTIONS,
 } from "@/lib/constants";
+import { OPPORTUNITY_DRAFT_KEY } from "@/lib/form-drafts";
 
 type SortKey = "contactDate" | "companyName" | "status";
 
@@ -478,6 +479,9 @@ export function OpportunityDashboard() {
           <OpportunityForm
             key={editingOpportunity?.id ?? "new"}
             initialValues={toFormValues(editingOpportunity)}
+            persistKey={
+              editingOpportunity ? undefined : OPPORTUNITY_DRAFT_KEY
+            }
             onSubmit={handleSubmit}
             onCancel={() => {
               setFormOpen(false);

@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 import {
   CONTACT_TYPE_OPTIONS,
   emptyOpportunityForm,
@@ -33,6 +34,7 @@ export type OpportunityFormValues = {
 
 type OpportunityFormProps = {
   initialValues?: Partial<OpportunityFormValues>;
+  persistKey?: string;
   onSubmit: (values: OpportunityFormValues) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
@@ -59,14 +61,19 @@ export function toFormValues(
 
 export function OpportunityForm({
   initialValues,
+  persistKey,
   onSubmit,
   onCancel,
   submitLabel = "Save",
 }: OpportunityFormProps) {
-  const [values, setValues] = useState<OpportunityFormValues>({
-    ...emptyOpportunityForm,
-    ...initialValues,
-  });
+  const [values, setValues, clearPersisted] = usePersistedState(
+    persistKey ?? "job-tracking:opportunity-draft-disabled",
+    {
+      ...emptyOpportunityForm,
+      ...initialValues,
+    },
+    Boolean(persistKey),
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -121,6 +128,7 @@ export function OpportunityForm({
     setIsSubmitting(true);
     try {
       await onSubmit(values);
+      clearPersisted();
     } finally {
       setIsSubmitting(false);
     }

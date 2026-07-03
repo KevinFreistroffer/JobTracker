@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import {
+  emptyJobDescriptionDraft,
+  WHY_WORK_HERE_DRAFT_KEY,
+} from "@/lib/form-drafts";
 
 type GeneratedAnswers = {
   shortAnswer: string;
@@ -12,8 +17,11 @@ type GeneratedAnswers = {
 };
 
 export function WhyWorkHereForm() {
-  const [companyName, setCompanyName] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
+  const [draft, setDraft] = usePersistedState(
+    WHY_WORK_HERE_DRAFT_KEY,
+    emptyJobDescriptionDraft,
+  );
+  const { companyName, jobDescription } = draft;
   const [answers, setAnswers] = useState<GeneratedAnswers | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -88,7 +96,12 @@ export function WhyWorkHereForm() {
           <Input
             id="companyName"
             value={companyName}
-            onChange={(event) => setCompanyName(event.target.value)}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                companyName: event.target.value,
+              }))
+            }
             placeholder="Acme Corp"
           />
         </div>
@@ -98,7 +111,12 @@ export function WhyWorkHereForm() {
           <Textarea
             id="jobDescription"
             value={jobDescription}
-            onChange={(event) => setJobDescription(event.target.value)}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                jobDescription: event.target.value,
+              }))
+            }
             placeholder="Paste the full job description here..."
             className="min-h-[240px]"
           />

@@ -1,8 +1,14 @@
 import { ContactType } from "@prisma/client";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { OpportunityForm } from "@/components/opportunity-form";
+import { OPPORTUNITY_DRAFT_KEY } from "@/lib/form-drafts";
+
+afterEach(() => {
+  cleanup();
+  window.localStorage.clear();
+});
 
 describe("OpportunityForm", () => {
   it("renders fields and submits valid values", async () => {
@@ -72,5 +78,45 @@ describe("OpportunityForm", () => {
       container.querySelector("#recruiterEmail"),
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText(/recruiter name/i)).toBeInTheDocument();
+  });
+
+  it("restores and clears a persisted draft", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onCancel = vi.fn();
+
+    window.localStorage.setItem(
+      OPPORTUNITY_DRAFT_KEY,
+      JSON.stringify({
+        contactType: "",
+        status: "NEW",
+        recruiterName: "Jane Smith",
+        recruiterEmail: "",
+        companyName: "Acme Corp",
+        roleTitle: "",
+        contactDate: "",
+        notes: "",
+      }),
+    );
+
+    render(
+      <OpportunityForm
+        persistKey={OPPORTUNITY_DRAFT_KEY}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+        submitLabel="Create"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/company name/i)).toHaveValue("Acme Corp");
+    });
+
+    await user.click(screen.getByRole("button", { name: "Create" }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+      expect(window.localStorage.getItem(OPPORTUNITY_DRAFT_KEY)).toBeNull();
+    });
   });
 });

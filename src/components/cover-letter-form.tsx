@@ -5,14 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import {
+  COVER_LETTER_DRAFT_KEY,
+  emptyJobDescriptionDraft,
+} from "@/lib/form-drafts";
 import {
   buildCoverLetterFilename,
   downloadWordFile,
 } from "@/lib/download-word-file";
 
 export function CoverLetterForm() {
-  const [companyName, setCompanyName] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
+  const [draft, setDraft] = usePersistedState(
+    COVER_LETTER_DRAFT_KEY,
+    emptyJobDescriptionDraft,
+  );
+  const { companyName, jobDescription } = draft;
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -92,7 +100,12 @@ export function CoverLetterForm() {
           <Input
             id="companyName"
             value={companyName}
-            onChange={(event) => setCompanyName(event.target.value)}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                companyName: event.target.value,
+              }))
+            }
             placeholder="Acme Corp (optional)"
           />
         </div>
@@ -102,7 +115,12 @@ export function CoverLetterForm() {
           <Textarea
             id="jobDescription"
             value={jobDescription}
-            onChange={(event) => setJobDescription(event.target.value)}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                jobDescription: event.target.value,
+              }))
+            }
             placeholder="Paste the full job description here..."
             className="min-h-[240px]"
           />
