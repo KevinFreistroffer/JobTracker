@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   buildCoverLetterFilename,
-  downloadTextFile,
-} from "@/lib/download-text-file";
+  downloadWordFile,
+} from "@/lib/download-word-file";
 
 export function CoverLetterForm() {
   const [companyName, setCompanyName] = useState("");
@@ -60,12 +60,12 @@ export function CoverLetterForm() {
     window.setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleDownload() {
+  async function handleDownload() {
     if (!coverLetter) {
       return;
     }
 
-    downloadTextFile(
+    await downloadWordFile(
       coverLetter,
       buildCoverLetterFilename(companyName),
     );
@@ -131,7 +131,7 @@ export function CoverLetterForm() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={handleDownload}
+                onClick={() => void handleDownload()}
               >
                 Download
               </Button>

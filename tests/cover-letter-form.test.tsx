@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CoverLetterForm } from "@/components/cover-letter-form";
-import * as downloadTextFile from "@/lib/download-text-file";
+import * as downloadFile from "@/lib/download-word-file";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -10,11 +10,11 @@ afterEach(() => {
 });
 
 describe("CoverLetterForm", () => {
-  it("downloads the generated cover letter as a text file", async () => {
+  it("downloads the generated cover letter as a Word file", async () => {
     const user = userEvent.setup();
     const downloadSpy = vi
-      .spyOn(downloadTextFile, "downloadTextFile")
-      .mockImplementation(() => {});
+      .spyOn(downloadFile, "downloadWordFile")
+      .mockResolvedValue(undefined);
 
     vi.stubGlobal(
       "fetch",
@@ -45,7 +45,7 @@ describe("CoverLetterForm", () => {
     await waitFor(() => {
       expect(downloadSpy).toHaveBeenCalledWith(
         "Dear Hiring Manager,\n\nI am excited to apply.",
-        "cover-letter-medallion.txt",
+        "cover-letter-medallion.docx",
       );
     });
   });
