@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  buildCoverLetterFilename,
+  downloadTextFile,
+} from "@/lib/download-text-file";
 
 export function CoverLetterForm() {
   const [companyName, setCompanyName] = useState("");
@@ -54,6 +58,17 @@ export function CoverLetterForm() {
     await navigator.clipboard.writeText(coverLetter);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleDownload() {
+    if (!coverLetter) {
+      return;
+    }
+
+    downloadTextFile(
+      coverLetter,
+      buildCoverLetterFilename(companyName),
+    );
   }
 
   return (
@@ -111,14 +126,24 @@ export function CoverLetterForm() {
               Cover Letter
               {companyName.trim() ? ` for ${companyName.trim()}` : ""}
             </h2>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void handleCopy()}
-            >
-              {copied ? "Copied!" : "Copy"}
-            </Button>
+            <div className="flex shrink-0 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+              >
+                Download
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void handleCopy()}
+              >
+                {copied ? "Copied!" : "Copy"}
+              </Button>
+            </div>
           </div>
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
             {coverLetter}
