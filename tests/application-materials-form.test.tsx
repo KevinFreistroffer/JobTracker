@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CoverLetterForm } from "@/components/cover-letter-form";
+import { ApplicationMaterialsForm } from "@/components/application-materials-form";
 import * as downloadFile from "@/lib/download-word-file";
 
 afterEach(() => {
@@ -9,8 +9,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("CoverLetterForm", () => {
-  it("downloads the generated cover letter as a Word file", async () => {
+describe("ApplicationMaterialsForm", () => {
+  it("generates cover letter and why-work-here answers together", async () => {
     const user = userEvent.setup();
     const downloadSpy = vi
       .spyOn(downloadFile, "downloadWordFile")
@@ -22,11 +22,13 @@ describe("CoverLetterForm", () => {
         ok: true,
         json: async () => ({
           coverLetter: "Dear Hiring Manager,\n\nI am excited to apply.",
+          shortAnswer: "I am excited about Medallion.",
+          longAnswer: "Medallion's mission aligns with my experience.",
         }),
       }),
     );
 
-    render(<CoverLetterForm />);
+    render(<ApplicationMaterialsForm />);
 
     await user.type(
       screen.getByLabelText(/job description/i),
@@ -34,13 +36,18 @@ describe("CoverLetterForm", () => {
     );
     await user.type(screen.getByLabelText(/company name/i), "Medallion");
     await user.click(
-      screen.getByRole("button", { name: /generate cover letter/i }),
+      screen.getByRole("button", { name: /generate materials/i }),
     );
 
-    const downloadButton = await screen.findByRole("button", {
-      name: /download/i,
-    });
-    await user.click(downloadButton);
+    expect(
+      await screen.findByText(/Dear Hiring Manager,/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/I am excited about Medallion\./)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Medallion's mission aligns with my experience\./),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^download$/i }));
 
     await waitFor(() => {
       expect(downloadSpy).toHaveBeenCalledWith(

@@ -7,37 +7,42 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import {
+  APPLICATION_MATERIALS_DRAFT_KEY,
   emptyJobDescriptionDraft,
-  WHY_WORK_HERE_DRAFT_KEY,
 } from "@/lib/form-drafts";
+import {
+  buildCoverLetterFilename,
+  downloadWordFile,
+} from "@/lib/download-word-file";
 
-type GeneratedAnswers = {
+type GeneratedMaterials = {
+  coverLetter: string;
   shortAnswer: string;
   longAnswer: string;
 };
 
-export function WhyWorkHereForm() {
+type CopyTarget = "coverLetter" | "shortAnswer" | "longAnswer";
+
+export function ApplicationMaterialsForm() {
   const [draft, setDraft] = usePersistedState(
-    WHY_WORK_HERE_DRAFT_KEY,
+    APPLICATION_MATERIALS_DRAFT_KEY,
     emptyJobDescriptionDraft,
   );
   const { companyName, jobDescription } = draft;
-  const [answers, setAnswers] = useState<GeneratedAnswers | null>(null);
+  const [materials, setMaterials] = useState<GeneratedMaterials | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [copiedAnswer, setCopiedAnswer] = useState<keyof GeneratedAnswers | null>(
-    null,
-  );
+  const [copiedTarget, setCopiedTarget] = useState<CopyTarget | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setAnswers(null);
-    setCopiedAnswer(null);
+    setMaterials(null);
+    setCopiedTarget(null);
     setIsGenerating(true);
 
     try {
-      const response = await fetch("/api/why-work-here", {
+      const response = await fetch("/api/application-materials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyName, jobDescription }),
@@ -46,10 +51,11 @@ export function WhyWorkHereForm() {
       const body = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(body?.error ?? "Failed to generate answer");
+        throw new Error(body?.error ?? "Failed to generate application materials");
       }
 
-      setAnswers({
+      setMaterials({
+        coverLetter: body.coverLetter,
         shortAnswer: body.shortAnswer,
         longAnswer: body.longAnswer ?? body.answer,
       });
@@ -57,33 +63,44 @@ export function WhyWorkHereForm() {
       setError(
         generateError instanceof Error
           ? generateError.message
-          : "Failed to generate answer",
+          : "Failed to generate application materials",
       );
     } finally {
       setIsGenerating(false);
     }
   }
 
-  async function handleCopy(answerType: keyof GeneratedAnswers) {
-    const answer = answers?.[answerType];
-    if (!answer) {
+  async function handleCopy(target: CopyTarget) {
+    const text = materials?.[target];
+    if (!text) {
       return;
     }
 
-    await navigator.clipboard.writeText(answer);
-    setCopiedAnswer(answerType);
-    window.setTimeout(() => setCopiedAnswer(null), 2000);
+    await navigator.clipboard.writeText(text);
+    setCopiedTarget(target);
+    window.setTimeout(() => setCopiedTarget(null), 2000);
+  }
+
+  async function handleDownload() {
+    if (!materials?.coverLetter) {
+      return;
+    }
+
+    await downloadWordFile(
+      materials.coverLetter,
+      buildCoverLetterFilename(companyName),
+    );
   }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-          Why Work Here
+          Application Materials
         </h1>
         <p className="mt-1 text-slate-600">
-          Generate a tailored answer to &ldquo;Why do you want to work for this
-          company?&rdquo; using your resume and a job description.
+          Generate a cover letter and &ldquo;Why work here?&rdquo; answers from
+          your resume and a job description in one step.
         </p>
       </div>
 
@@ -103,6 +120,7 @@ export function WhyWorkHereForm() {
               }))
             }
             placeholder="Acme Corp"
+            required
           />
         </div>
 
@@ -119,11 +137,12 @@ export function WhyWorkHereForm() {
             }
             placeholder="Paste the full job description here..."
             className="min-h-[240px]"
+            required
           />
         </div>
 
         <Button type="submit" disabled={isGenerating}>
-          {isGenerating ? "Generating..." : "Generate Answer"}
+          {isGenerating ? "Generating..." : "Generate Materials"}
         </Button>
       </form>
 
@@ -133,13 +152,45 @@ export function WhyWorkHereForm() {
         </div>
       ) : null}
 
-      {answers ? (
+      {materials ? (
         <div className="space-y-4">
           <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Short Version
+                  Cover Letter
+                  {companyName.trim() ? ` for ${companyName.trim()}` : ""}
+                </h2>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleDownload()}
+                >
+                  Download
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleCopy("coverLetter")}
+                >
+                  {copiedTarget === "coverLetter" ? "Copied!" : "Copy"}
+                </Button>
+              </div>
+            </div>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+              {materials.coverLetter}
+            </p>
+          </div>
+
+          <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Why Work Here — Short Version
                 </h2>
                 <p className="text-sm text-slate-500">
                   1-2 sentences for quick forms or recruiter messages.
@@ -151,11 +202,11 @@ export function WhyWorkHereForm() {
                 size="sm"
                 onClick={() => void handleCopy("shortAnswer")}
               >
-                {copiedAnswer === "shortAnswer" ? "Copied!" : "Copy"}
+                {copiedTarget === "shortAnswer" ? "Copied!" : "Copy"}
               </Button>
             </div>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-              {answers.shortAnswer}
+              {materials.shortAnswer}
             </p>
           </div>
 
@@ -163,7 +214,7 @@ export function WhyWorkHereForm() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Long Version
+                  Why Work Here — Long Version
                 </h2>
                 <p className="text-sm text-slate-500">
                   Fuller response to &ldquo;Why do you want to work for{" "}
@@ -176,11 +227,11 @@ export function WhyWorkHereForm() {
                 size="sm"
                 onClick={() => void handleCopy("longAnswer")}
               >
-                {copiedAnswer === "longAnswer" ? "Copied!" : "Copy"}
+                {copiedTarget === "longAnswer" ? "Copied!" : "Copy"}
               </Button>
             </div>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-              {answers.longAnswer}
+              {materials.longAnswer}
             </p>
           </div>
         </div>

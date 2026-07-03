@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AppNav } from "@/components/app-nav";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/why-work-here",
+  usePathname: () => "/application-materials",
 }));
 
 describe("AppNav", () => {
@@ -14,13 +14,8 @@ describe("AppNav", () => {
       "href",
       "/",
     );
-    expect(screen.getByRole("link", { name: "Why Work Here" })).toHaveAttribute(
-      "href",
-      "/why-work-here",
-    );
-    expect(screen.getByRole("link", { name: "Cover Letter" })).toHaveAttribute(
-      "href",
-      "/cover-letter",
-    );
+    expect(
+      screen.getByRole("link", { name: "Application Materials" }),
+    ).toHaveAttribute("href", "/application-materials");
   });
 });

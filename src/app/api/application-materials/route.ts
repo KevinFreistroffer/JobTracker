@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { generateCoverLetter } from "@/lib/cover-letter";
+import { generateApplicationMaterials } from "@/lib/application-materials";
 import { getOpenAiApiKey } from "@/lib/openai-api-key";
 import { getResumeText } from "@/lib/resume";
 
 const requestSchema = z.object({
-  companyName: z.string().trim().optional().default(""),
+  companyName: z.string().trim().min(1, "Company name is required"),
   jobDescription: z.string().trim().min(1, "Job description is required"),
 });
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     const resume = getResumeText();
-    const coverLetter = await generateCoverLetter(
+    const materials = await generateApplicationMaterials(
       {
         resume,
         companyName: parsed.data.companyName,
@@ -42,12 +42,17 @@ export async function POST(request: NextRequest) {
       apiKey,
     );
 
-    return NextResponse.json({ coverLetter });
+    return NextResponse.json({
+      coverLetter: materials.coverLetter,
+      shortAnswer: materials.shortAnswer,
+      longAnswer: materials.longAnswer,
+      answer: materials.longAnswer,
+    });
   } catch (error) {
-    console.error("POST /api/cover-letter failed:", error);
+    console.error("POST /api/application-materials failed:", error);
     return NextResponse.json(
       {
-        error: "Failed to generate cover letter",
+        error: "Failed to generate application materials",
         detail: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
