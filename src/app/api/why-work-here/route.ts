@@ -41,7 +41,11 @@ export async function POST(request: NextRequest) {
       apiKey,
     );
 
-    return NextResponse.json({ answer });
+    return NextResponse.json({
+      shortAnswer: answer.shortAnswer,
+      longAnswer: answer.longAnswer,
+      answer: answer.longAnswer,
+    });
   } catch (error) {
     console.error("POST /api/why-work-here failed:", error);
     return NextResponse.json(
