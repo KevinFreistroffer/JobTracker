@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getOpenAiApiKey } from "@/lib/openai-api-key";
 import { getResumeText } from "@/lib/resume";
 import { generateWhyWorkHereAnswer } from "@/lib/why-work-here";
 
@@ -10,12 +11,12 @@ const requestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = getOpenAiApiKey();
     if (!apiKey) {
       return NextResponse.json(
         {
           error:
-            "OPENAI_API_KEY is not configured. Add it to your environment variables.",
+            "OPENAI_API_KEY (or OPEN_API_KEY) is not configured. Add it to your environment variables.",
         },
         { status: 500 },
       );
