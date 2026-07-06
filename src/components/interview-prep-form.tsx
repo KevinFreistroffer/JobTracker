@@ -11,8 +11,8 @@ const JD_PREVIEW_LENGTH = 400;
 type CopyTarget =
   | "techStackSummary"
   | "roleFocusSummary"
-  | "technicalQuestions"
-  | "culturalQuestions";
+  | "technicalQuestionsToAsk"
+  | "culturalQuestionsToAsk";
 
 function formatQuestionList(questions: string[]) {
   return questions.map((question, index) => `${index + 1}. ${question}`).join("\n");
@@ -72,7 +72,7 @@ export function InterviewPrepForm() {
     }
 
     const text =
-      target === "technicalQuestions" || target === "culturalQuestions"
+      target === "technicalQuestionsToAsk" || target === "culturalQuestionsToAsk"
         ? formatQuestionList(prep[target])
         : prep[target];
 
@@ -88,8 +88,8 @@ export function InterviewPrepForm() {
           Interview Prep
         </h1>
         <p className="mt-1 text-slate-600">
-          Generate a tech stack summary, role focus overview, and tailored
-          interview questions from your shared job description.
+          Generate a tech stack summary, role focus overview, and questions to
+          ask your interviewers from your shared job description.
         </p>
       </div>
 
@@ -204,23 +204,24 @@ export function InterviewPrepForm() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Technical Interview Questions
+                  Technical Questions to Ask
                 </h2>
                 <p className="text-sm text-slate-500">
-                  Five questions tailored to the role and your resume.
+                  Five questions you can ask interviewers about the technical
+                  environment.
                 </p>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => void handleCopy("technicalQuestions")}
+                onClick={() => void handleCopy("technicalQuestionsToAsk")}
               >
-                {copiedTarget === "technicalQuestions" ? "Copied!" : "Copy"}
+                {copiedTarget === "technicalQuestionsToAsk" ? "Copied!" : "Copy"}
               </Button>
             </div>
             <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-slate-700">
-              {prep.technicalQuestions.map((question) => (
+              {prep.technicalQuestionsToAsk.map((question) => (
                 <li key={question}>{question}</li>
               ))}
             </ol>
@@ -230,23 +231,24 @@ export function InterviewPrepForm() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Cultural Fit Questions
+                  Culture and Team Questions to Ask
                 </h2>
                 <p className="text-sm text-slate-500">
-                  Five non-managerial questions about teamwork and values.
+                  Five non-managerial questions you can ask about teamwork and
+                  values.
                 </p>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => void handleCopy("culturalQuestions")}
+                onClick={() => void handleCopy("culturalQuestionsToAsk")}
               >
-                {copiedTarget === "culturalQuestions" ? "Copied!" : "Copy"}
+                {copiedTarget === "culturalQuestionsToAsk" ? "Copied!" : "Copy"}
               </Button>
             </div>
             <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-slate-700">
-              {prep.culturalQuestions.map((question) => (
+              {prep.culturalQuestionsToAsk.map((question) => (
                 <li key={question}>{question}</li>
               ))}
             </ol>

@@ -7,14 +7,14 @@ import * as resume from "@/lib/resume";
 const validPrep = {
   techStackSummary: "React and AWS.",
   roleFocusSummary: "Full-stack healthcare engineer.",
-  technicalQuestions: [
+  technicalQuestionsToAsk: [
     "Question 1",
     "Question 2",
     "Question 3",
     "Question 4",
     "Question 5",
   ],
-  culturalQuestions: [
+  culturalQuestionsToAsk: [
     "Culture 1",
     "Culture 2",
     "Culture 3",

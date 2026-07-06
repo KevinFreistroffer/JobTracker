@@ -21,10 +21,12 @@ type CopyTarget = "coverLetter" | "shortAnswer" | "longAnswer";
 
 export function ApplicationMaterialsForm() {
   const [draft, setDraft] = useSharedJobDraft();
-  const { companyName, jobDescription } = draft;
+  const { companyName, roleTitle = "", jobDescription } = draft;
   const [materials, setMaterials] = useState<GeneratedMaterials | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [copiedTarget, setCopiedTarget] = useState<CopyTarget | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -60,6 +62,40 @@ export function ApplicationMaterialsForm() {
       );
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleSaveToLibrary() {
+    setSaveMessage(null);
+    setError(null);
+    setIsSaving(true);
+
+    try {
+      const response = await fetch("/api/job-descriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyName,
+          roleTitle: roleTitle.trim() || undefined,
+          body: jobDescription,
+        }),
+      });
+
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(body?.error ?? "Failed to save job description");
+      }
+
+      setSaveMessage("Saved to JD Library.");
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Failed to save job description",
+      );
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -118,6 +154,21 @@ export function ApplicationMaterialsForm() {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="roleTitle">Role Title</Label>
+          <Input
+            id="roleTitle"
+            value={roleTitle}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                roleTitle: event.target.value,
+              }))
+            }
+            placeholder="Senior Software Engineer"
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="jobDescription">Job Description</Label>
           <Textarea
             id="jobDescription"
@@ -133,14 +184,34 @@ export function ApplicationMaterialsForm() {
             required
           />
           <p className="text-sm text-slate-500">
-            This job description is shared with Interview Prep.
+            Shared with Interview Prep. Save to build your JD library.
           </p>
         </div>
 
-        <Button type="submit" disabled={isGenerating}>
-          {isGenerating ? "Generating..." : "Generate Materials"}
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" disabled={isGenerating}>
+            {isGenerating ? "Generating..." : "Generate Materials"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={
+              isSaving ||
+              !companyName.trim() ||
+              !jobDescription.trim()
+            }
+            onClick={() => void handleSaveToLibrary()}
+          >
+            {isSaving ? "Saving..." : "Save to JD Library"}
+          </Button>
+        </div>
       </form>
+
+      {saveMessage ? (
+        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+          {saveMessage}
+        </div>
+      ) : null}
 
       {error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">

@@ -28,6 +28,7 @@ describe("InterviewPrepForm", () => {
       APPLICATION_MATERIALS_DRAFT_KEY,
       JSON.stringify({
         companyName: "Medallion",
+        roleTitle: "Senior Software Engineer",
         jobDescription: "Build healthcare software with React and TypeScript.",
       }),
     );
@@ -39,19 +40,19 @@ describe("InterviewPrepForm", () => {
         json: async () => ({
           techStackSummary: "React and TypeScript on AWS.",
           roleFocusSummary: "Healthcare full-stack engineer.",
-          technicalQuestions: [
-            "How do you structure React components?",
-            "Explain TypeScript utility types.",
-            "Describe an AWS deployment pipeline.",
+          technicalQuestionsToAsk: [
+            "How does your team structure React applications?",
+            "What does your deployment pipeline look like?",
             "How do you test API integrations?",
-            "What is your debugging workflow?",
+            "Which parts of the stack would I own in the first 90 days?",
+            "How do you balance feature delivery with reliability work?",
           ],
-          culturalQuestions: [
-            "Tell me about a cross-team project.",
-            "How do you handle ambiguity?",
-            "What kind of culture helps you do your best work?",
-            "Describe a time you received tough feedback.",
-            "Why are you interested in this company?",
+          culturalQuestionsToAsk: [
+            "How does the team collaborate across product and engineering?",
+            "What does success look like in the first six months?",
+            "How do engineers get feedback here?",
+            "What do you enjoy most about the team culture?",
+            "How does the team handle changing priorities?",
           ],
         }),
       }),
@@ -80,10 +81,10 @@ describe("InterviewPrepForm", () => {
       screen.getByText(/Healthcare full-stack engineer\./),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/How do you structure React components\?/),
+      screen.getByText(/How does your team structure React applications\?/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Tell me about a cross-team project\./),
+      screen.getByText(/How does the team collaborate across product and engineering\?/),
     ).toBeInTheDocument();
   });
 });

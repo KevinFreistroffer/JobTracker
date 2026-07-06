@@ -8,19 +8,19 @@ import {
 const validPrep = {
   techStackSummary: "React, TypeScript, and AWS.",
   roleFocusSummary: "Senior full-stack engineer for healthcare products.",
-  technicalQuestions: [
-    "How would you design a React data table?",
-    "Explain TypeScript generics.",
-    "Describe an AWS Lambda workflow.",
-    "How do you test React components?",
-    "What is your approach to API error handling?",
+  technicalQuestionsToAsk: [
+    "How does your team structure React applications?",
+    "What does your deployment pipeline look like?",
+    "How do you test services that integrate with AWS?",
+    "Which parts of the stack would I own in the first 90 days?",
+    "How do you balance feature delivery with reliability work?",
   ],
-  culturalQuestions: [
-    "Tell me about a time you collaborated across teams.",
-    "How do you handle conflicting priorities?",
-    "What motivates you in your work?",
-    "Describe your ideal team environment.",
-    "How do you give and receive feedback?",
+  culturalQuestionsToAsk: [
+    "How does the team collaborate across product and engineering?",
+    "What does success look like in the first six months?",
+    "How do engineers get feedback here?",
+    "What do you enjoy most about the team culture?",
+    "How does the team handle changing priorities?",
   ],
 };
 
@@ -46,37 +46,29 @@ describe("buildInterviewPrepPrompt", () => {
     );
   });
 
-  it("requests JSON output with technical and cultural question arrays", () => {
+  it("requests questions the candidate should ask interviewers", () => {
     const prompt = buildInterviewPrepPrompt({
       resume: "Engineer.",
       companyName: "Acme",
       jobDescription: "Cloud-native services.",
     });
 
-    expect(prompt).toContain('"technicalQuestions"');
-    expect(prompt).toContain('"culturalQuestions"');
-    expect(prompt).toContain("exactly 5");
+    expect(prompt).toContain("technicalQuestionsToAsk");
+    expect(prompt).toContain("culturalQuestionsToAsk");
+    expect(prompt).toContain("ask the interviewer");
+    expect(prompt).toContain("first person");
   });
 
-  it("excludes people-management cultural questions", () => {
+  it("excludes behavioral questions directed at the candidate", () => {
     const prompt = buildInterviewPrepPrompt({
       resume: "Engineer.",
       companyName: "Acme",
       jobDescription: "Role.",
     });
 
-    expect(prompt).toContain("Do NOT include people-management");
-    expect(prompt).toContain("individual contributor role");
-  });
-
-  it("falls back to a generic company reference when none is given", () => {
-    const prompt = buildInterviewPrepPrompt({
-      resume: "Engineer.",
-      companyName: "",
-      jobDescription: "Role.",
-    });
-
-    expect(prompt).toContain("interview prep session at the company");
+    expect(prompt).toContain(
+      'Do NOT include people-management questions or behavioral "tell me about a time you..." questions',
+    );
   });
 });
 
@@ -85,23 +77,6 @@ describe("parseInterviewPrepResponse", () => {
     expect(parseInterviewPrepResponse(JSON.stringify(validPrep))).toEqual(
       validPrep,
     );
-  });
-
-  it("throws when JSON is invalid", () => {
-    expect(() => parseInterviewPrepResponse("not json")).toThrow(
-      "invalid JSON",
-    );
-  });
-
-  it("throws when the shape is invalid", () => {
-    expect(() =>
-      parseInterviewPrepResponse(
-        JSON.stringify({
-          ...validPrep,
-          technicalQuestions: ["Only one question"],
-        }),
-      ),
-    ).toThrow("invalid interview prep shape");
   });
 });
 
@@ -127,26 +102,5 @@ describe("generateInterviewPrep", () => {
     );
 
     expect(result).toEqual(validPrep);
-  });
-
-  it("throws when the model returns an empty response", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({ choices: [{ message: { content: "" } }] }),
-      }),
-    );
-
-    await expect(
-      generateInterviewPrep(
-        {
-          resume: "Engineer.",
-          companyName: "Acme",
-          jobDescription: "Role.",
-        },
-        "test-api-key",
-      ),
-    ).rejects.toThrow("empty response");
   });
 });

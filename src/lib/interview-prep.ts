@@ -9,15 +9,15 @@ export type InterviewPrepInput = {
 export type InterviewPrep = {
   techStackSummary: string;
   roleFocusSummary: string;
-  technicalQuestions: string[];
-  culturalQuestions: string[];
+  technicalQuestionsToAsk: string[];
+  culturalQuestionsToAsk: string[];
 };
 
 export const interviewPrepSchema = z.object({
   techStackSummary: z.string().min(1),
   roleFocusSummary: z.string().min(1),
-  technicalQuestions: z.array(z.string().min(1)).length(5),
-  culturalQuestions: z.array(z.string().min(1)).length(5),
+  technicalQuestionsToAsk: z.array(z.string().min(1)).length(5),
+  culturalQuestionsToAsk: z.array(z.string().min(1)).length(5),
 });
 
 export function buildInterviewPrepPrompt({
@@ -32,8 +32,8 @@ export function buildInterviewPrepPrompt({
 Return a JSON object with exactly these keys:
 - "techStackSummary": A concise paragraph summarizing the technologies, languages, frameworks, cloud services, and tools mentioned or implied in the job description.
 - "roleFocusSummary": A concise paragraph summarizing what the company is looking for—key responsibilities, seniority level, domain focus, and must-have vs nice-to-have signals.
-- "technicalQuestions": An array of exactly 5 technical interview questions tailored to this role. Mix conceptual and practical questions grounded in the job description's tech stack and the candidate's resume experience. Do not ask generic trivia unrelated to the role.
-- "culturalQuestions": An array of exactly 5 cultural-fit interview questions for an individual contributor role. Focus on teamwork, values, motivation, communication, and work style. Do NOT include people-management, leadership-of-teams, or "how would you manage/direct a team" style questions.
+- "technicalQuestionsToAsk": An array of exactly 5 questions the candidate should ask the interviewer about the role's technical environment. Focus on stack, architecture, tooling, deployment, testing, and day-to-day engineering work. Ground questions in the job description and the candidate's resume. Write each question in first person as something the candidate would say in the interview.
+- "culturalQuestionsToAsk": An array of exactly 5 questions the candidate should ask the interviewer about team culture, collaboration, growth, work style, and values for an individual contributor role. Write each question in first person. Do NOT include people-management questions or behavioral "tell me about a time you..." questions directed at the candidate.
 
 Candidate resume:
 ${resume.trim()}
@@ -76,7 +76,7 @@ export async function generateInterviewPrep(
         {
           role: "system",
           content:
-            "You help software engineers prepare for job interviews by analyzing job descriptions and resumes. Return only valid JSON matching the requested schema.",
+            "You help software engineers prepare for job interviews by analyzing job descriptions and resumes. Generate questions the candidate should ask interviewers. Return only valid JSON matching the requested schema.",
         },
         {
           role: "user",

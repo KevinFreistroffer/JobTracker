@@ -1,12 +1,14 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApplicationMaterialsForm } from "@/components/application-materials-form";
 import * as downloadFile from "@/lib/download-word-file";
 
 afterEach(() => {
+  cleanup();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  window.localStorage.clear();
 });
 
 describe("ApplicationMaterialsForm", () => {
@@ -55,5 +57,44 @@ describe("ApplicationMaterialsForm", () => {
         "cover-letter-medallion.docx",
       );
     });
+  });
+
+  it("saves the current draft to the JD library", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: "jd-1" }),
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<ApplicationMaterialsForm />);
+
+    await user.type(screen.getByLabelText(/company name/i), "Medallion");
+    await user.type(
+      screen.getByLabelText(/role title/i),
+      "Senior Software Engineer",
+    );
+    await user.type(
+      screen.getByLabelText(/job description/i),
+      "Build healthcare software.",
+    );
+    await user.click(
+      screen.getByRole("button", { name: /save to jd library/i }),
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/job-descriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyName: "Medallion",
+          roleTitle: "Senior Software Engineer",
+          body: "Build healthcare software.",
+        }),
+      });
+    });
+
+    expect(await screen.findByText(/saved to jd library/i)).toBeInTheDocument();
   });
 });

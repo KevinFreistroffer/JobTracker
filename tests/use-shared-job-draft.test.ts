@@ -22,6 +22,7 @@ describe("useSharedJobDraft", () => {
     await waitFor(() => {
       expect(result.current[0]).toEqual({
         companyName: "Acme Corp",
+        roleTitle: "",
         jobDescription: "React and TypeScript role.",
       });
     });
@@ -29,6 +30,7 @@ describe("useSharedJobDraft", () => {
     act(() => {
       result.current[1]({
         companyName: "Northstar",
+        roleTitle: "Backend Engineer",
         jobDescription: "Backend services.",
       });
     });

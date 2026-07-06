@@ -175,3 +175,37 @@ export function serializeOpportunity<T extends {
     updatedAt: opportunity.updatedAt.toISOString(),
   };
 }
+
+const jobDescriptionObjectSchema = z.object({
+  companyName: z.string().trim().min(1, "Company name is required"),
+  roleTitle: z.string().trim().optional(),
+  body: z.string().trim().min(1, "Job description is required"),
+});
+
+export const jobDescriptionInputSchema = jobDescriptionObjectSchema.transform(
+  (data) => ({
+    companyName: data.companyName,
+    roleTitle: normalizeOptionalText(data.roleTitle) ?? null,
+    body: data.body,
+  }),
+);
+
+export const jobDescriptionInsightSchema = z.object({
+  question: z.string().trim().min(1, "Question is required"),
+});
+
+export type JobDescriptionInput = z.infer<typeof jobDescriptionInputSchema>;
+export type JobDescriptionInsightInput = z.infer<
+  typeof jobDescriptionInsightSchema
+>;
+
+export function serializeJobDescription<T extends {
+  createdAt: Date;
+  updatedAt: Date;
+}>(jobDescription: T) {
+  return {
+    ...jobDescription,
+    createdAt: jobDescription.createdAt.toISOString(),
+    updatedAt: jobDescription.updatedAt.toISOString(),
+  };
+}

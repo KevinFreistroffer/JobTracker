@@ -4,10 +4,12 @@ export const OPPORTUNITY_DRAFT_KEY = "job-tracking:opportunity-draft";
 
 export type JobDescriptionDraft = {
   companyName: string;
+  roleTitle: string;
   jobDescription: string;
 };
 
 export const emptyJobDescriptionDraft: JobDescriptionDraft = {
   companyName: "",
+  roleTitle: "",
   jobDescription: "",
 };
