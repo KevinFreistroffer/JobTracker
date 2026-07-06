@@ -89,6 +89,20 @@ describe("opportunityInputSchema", () => {
     }
   });
 
+  it("accepts null company name and role title", () => {
+    const result = opportunityInputSchema.safeParse({
+      status: "NEW",
+      companyName: null,
+      roleTitle: null,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.companyName).toBeNull();
+      expect(result.data.roleTitle).toBeNull();
+    }
+  });
+
   it("rejects invalid recruiter email", () => {
     const result = opportunityInputSchema.safeParse({
       contactType: "EMAIL",

@@ -326,7 +326,7 @@ export function OpportunityForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="companyName">Company Name</Label>
+          <Label htmlFor="companyName">Company Name (optional)</Label>
           <Input
             id="companyName"
             value={values.companyName}
@@ -336,7 +336,7 @@ export function OpportunityForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="roleTitle">Role Title</Label>
+          <Label htmlFor="roleTitle">Role Title (optional)</Label>
           <Input
             id="roleTitle"
             value={values.roleTitle}

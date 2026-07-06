@@ -5,13 +5,15 @@ import { isInterviewStatus } from "@/lib/interview-datetime";
 const contactTypeSchema = z.nativeEnum(ContactType);
 const statusSchema = z.nativeEnum(OpportunityStatus);
 
+const optionalTextSchema = z.union([z.string().trim(), z.null()]).optional();
+
 const opportunityObjectSchema = z.object({
   contactType: contactTypeSchema.nullable().optional(),
   status: statusSchema.optional(),
-  recruiterName: z.string().trim().optional(),
-  recruiterEmail: z.string().trim().optional(),
-  companyName: z.string().trim().optional(),
-  roleTitle: z.string().trim().optional(),
+  recruiterName: optionalTextSchema,
+  recruiterEmail: optionalTextSchema,
+  companyName: optionalTextSchema,
+  roleTitle: optionalTextSchema,
   contactDate: z
     .union([z.string().trim(), z.date(), z.null()])
     .optional(),
