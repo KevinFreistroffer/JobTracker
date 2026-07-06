@@ -270,6 +270,42 @@ export function JdLibrary() {
         </div>
       ) : null}
 
+      <form
+        className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 sm:p-6"
+        onSubmit={(event) => void handleGenerateInsight(event)}
+      >
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Ask Across Your Library
+          </h2>
+          <p className="text-sm text-slate-500">
+            Ask open-ended questions like what Python-heavy roles typically
+            require.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="insightQuestion">Question</Label>
+          <Textarea
+            id="insightQuestion"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="What do Python-heavy roles typically require?"
+            className="min-h-[120px]"
+            required
+          />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={
+            isGenerating || question.trim().length === 0 || jobDescriptions.length === 0
+          }
+        >
+          {isGenerating ? "Generating..." : "Generate Insight"}
+        </Button>
+      </form>
+
       <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -320,42 +356,6 @@ export function JdLibrary() {
           </ul>
         )}
       </div>
-
-      <form
-        className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 sm:p-6"
-        onSubmit={(event) => void handleGenerateInsight(event)}
-      >
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            Ask Across Your Library
-          </h2>
-          <p className="text-sm text-slate-500">
-            Ask open-ended questions like what Python-heavy roles typically
-            require.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="insightQuestion">Question</Label>
-          <Textarea
-            id="insightQuestion"
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            placeholder="What do Python-heavy roles typically require?"
-            className="min-h-[120px]"
-            required
-          />
-        </div>
-
-        <Button
-          type="submit"
-          disabled={
-            isGenerating || question.trim().length === 0 || jobDescriptions.length === 0
-          }
-        >
-          {isGenerating ? "Generating..." : "Generate Insight"}
-        </Button>
-      </form>
 
       {insightError ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
