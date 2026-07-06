@@ -1,0 +1,10 @@
+Create a GitHub OAuth App at github.com/settings/developers
+
+Callback (local): http://localhost:3000/api/auth/callback/github
+Callback (production): https://<your-vercel-domain>/api/auth/callback/github
+Set environment variables in .env.local and Vercel (see .env.example):
+
+AUTH_SECRET — generate with openssl rand -base64 32
+AUTH_GITHUB_ID / AUTH_GITHUB_SECRET — from the OAuth app
+ALLOWED_GITHUB_USERNAME — your exact GitHub handle
+Redeploy on Vercel after adding the env vars.

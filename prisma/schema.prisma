@@ -37,6 +37,8 @@ model Opportunity {
   companyName    String?
   roleTitle      String?
   contactDate    DateTime?
+  interviewAt    DateTime?
+  interviewReminderEnabled Boolean @default(false)
   notes          String?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt

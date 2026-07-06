@@ -1,5 +1,6 @@
 import { ContactType, OpportunityStatus } from "@prisma/client";
 import { z } from "zod";
+import { isInterviewStatus } from "@/lib/interview-datetime";
 
 const contactTypeSchema = z.nativeEnum(ContactType);
 const statusSchema = z.nativeEnum(OpportunityStatus);
@@ -14,6 +15,10 @@ const opportunityObjectSchema = z.object({
   contactDate: z
     .union([z.string().trim(), z.date(), z.null()])
     .optional(),
+  interviewAt: z
+    .union([z.string().trim(), z.date(), z.null()])
+    .optional(),
+  interviewReminderEnabled: z.boolean().optional(),
   notes: z.union([z.string().trim(), z.null()]).optional(),
 });
 
@@ -65,6 +70,10 @@ function normalizeContactDate(value: string | Date | null | undefined) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+function normalizeInterviewAt(value: string | Date | null | undefined) {
+  return normalizeContactDate(value);
+}
+
 function normalizeNotes(value: string | null | undefined, defaultValue?: string) {
   if (value === undefined) {
     return defaultValue;
@@ -82,12 +91,19 @@ function normalizeOpportunity<T extends Partial<OpportunityObject>>(
   const recruiterName = normalizeOptionalText(data.recruiterName);
   const companyName = normalizeOptionalText(data.companyName);
   const contactDate = normalizeContactDate(data.contactDate);
+  const interviewAt = normalizeInterviewAt(data.interviewAt);
+  const interviewReminderEnabled =
+    data.interviewReminderEnabled === undefined
+      ? undefined
+      : data.interviewReminderEnabled;
   const contactType =
     data.contactType === undefined ? undefined : data.contactType ?? null;
   const status =
     data.status === undefined
       ? options.defaultStatus
       : data.status ?? OpportunityStatus.NEW;
+  const clearsInterviewFields =
+    status !== undefined && !isInterviewStatus(status);
 
   if (data.contactType === ContactType.LINKEDIN) {
     return {
@@ -97,6 +113,10 @@ function normalizeOpportunity<T extends Partial<OpportunityObject>>(
       recruiterName,
       companyName,
       contactDate,
+      interviewAt: clearsInterviewFields ? null : interviewAt,
+      interviewReminderEnabled: clearsInterviewFields
+        ? false
+        : interviewReminderEnabled,
       recruiterEmail: "",
       roleTitle,
       notes,
@@ -117,6 +137,10 @@ function normalizeOpportunity<T extends Partial<OpportunityObject>>(
     recruiterName,
     companyName,
     contactDate,
+    interviewAt: clearsInterviewFields ? null : interviewAt,
+    interviewReminderEnabled: clearsInterviewFields
+      ? false
+      : interviewReminderEnabled,
     recruiterEmail,
     roleTitle,
     notes,
@@ -139,6 +163,8 @@ export const opportunityInputSchema = opportunityObjectSchema
       companyName: normalized.companyName ?? null,
       roleTitle: normalized.roleTitle ?? null,
       contactDate: normalized.contactDate ?? null,
+      interviewAt: normalized.interviewAt ?? null,
+      interviewReminderEnabled: normalized.interviewReminderEnabled ?? false,
       notes: normalized.notes ?? "",
     };
   });
@@ -165,12 +191,14 @@ export type OpportunityUpdateInput = z.infer<typeof opportunityUpdateSchema>;
 
 export function serializeOpportunity<T extends {
   contactDate: Date | null;
+  interviewAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }>(opportunity: T) {
   return {
     ...opportunity,
     contactDate: opportunity.contactDate?.toISOString() ?? null,
+    interviewAt: opportunity.interviewAt?.toISOString() ?? null,
     createdAt: opportunity.createdAt.toISOString(),
     updatedAt: opportunity.updatedAt.toISOString(),
   };

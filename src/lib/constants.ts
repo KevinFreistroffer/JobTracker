@@ -43,6 +43,8 @@ export type OpportunityRecord = {
   companyName: string | null;
   roleTitle: string | null;
   contactDate: string | null;
+  interviewAt: string | null;
+  interviewReminderEnabled: boolean;
   notes: string | null;
   createdAt: string;
   updatedAt: string;
@@ -56,5 +58,8 @@ export const emptyOpportunityForm = {
   companyName: "",
   roleTitle: "",
   contactDate: "",
+  interviewDate: "",
+  interviewTime: "",
+  interviewReminderEnabled: false,
   notes: "",
 };

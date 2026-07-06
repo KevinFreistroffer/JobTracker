@@ -12,6 +12,8 @@ const opportunityWithNotes: OpportunityRecord = {
   companyName: "Acme Corp",
   roleTitle: "Software Developer",
   contactDate: "2025-07-01T00:00:00.000Z",
+  interviewAt: null,
+  interviewReminderEnabled: false,
   notes: "Discussed remote options and comp range.",
   createdAt: "2025-07-01T00:00:00.000Z",
   updatedAt: "2025-07-01T00:00:00.000Z",

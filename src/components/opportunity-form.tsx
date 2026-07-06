@@ -20,6 +20,11 @@ import {
   OpportunityRecord,
   STATUS_OPTIONS,
 } from "@/lib/constants";
+import {
+  combineInterviewAt,
+  isInterviewStatus,
+  splitInterviewAt,
+} from "@/lib/interview-datetime";
 import { toOpportunityFormValues } from "@/lib/parse-recruiter-email";
 
 export type OpportunityFormValues = {
@@ -30,6 +35,9 @@ export type OpportunityFormValues = {
   companyName: string;
   roleTitle: string;
   contactDate: string;
+  interviewDate: string;
+  interviewTime: string;
+  interviewReminderEnabled: boolean;
   notes: string;
 };
 
@@ -49,6 +57,10 @@ export function toFormValues(
     return { ...emptyOpportunityForm };
   }
 
+  const { date: interviewDate, time: interviewTime } = splitInterviewAt(
+    opportunity.interviewAt,
+  );
+
   return {
     contactType: opportunity.contactType ?? "",
     status: opportunity.status,
@@ -57,6 +69,9 @@ export function toFormValues(
     companyName: opportunity.companyName ?? "",
     roleTitle: opportunity.roleTitle ?? "",
     contactDate: opportunity.contactDate?.slice(0, 10) ?? "",
+    interviewDate,
+    interviewTime,
+    interviewReminderEnabled: opportunity.interviewReminderEnabled ?? false,
     notes: opportunity.notes ?? "",
   };
 }
@@ -94,6 +109,29 @@ export function OpportunityForm({
       return next;
     });
   }
+
+  function updateStatus(status: OpportunityStatus) {
+    setValues((current) => {
+      const next = { ...current, status };
+
+      if (!isInterviewStatus(status)) {
+        next.interviewDate = "";
+        next.interviewTime = "";
+        next.interviewReminderEnabled = false;
+      }
+
+      return next;
+    });
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.status;
+      delete next.interviewDate;
+      delete next.interviewTime;
+      return next;
+    });
+  }
+
+  const showInterviewFields = isInterviewStatus(values.status);
 
   function updateContactType(contactType: ContactType) {
     setValues((current) => ({
@@ -231,7 +269,7 @@ export function OpportunityForm({
           <Select
             value={values.status}
             onValueChange={(value) =>
-              updateField("status", value as OpportunityStatus)
+              updateStatus(value as OpportunityStatus)
             }
           >
             <SelectTrigger id="status">
@@ -317,6 +355,58 @@ export function OpportunityForm({
           onChange={(event) => updateField("contactDate", event.target.value)}
         />
       </div>
+
+      {showInterviewFields ? (
+        <div className="space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div>
+            <h3 className="text-sm font-medium text-slate-900">
+              Interview schedule
+            </h3>
+            <p className="text-sm text-slate-600">
+              Add the interview date and time, and enable a reminder notification.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="interviewDate">Interview Date</Label>
+              <Input
+                id="interviewDate"
+                type="date"
+                value={values.interviewDate}
+                onChange={(event) =>
+                  updateField("interviewDate", event.target.value)
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="interviewTime">Interview Time</Label>
+              <Input
+                id="interviewTime"
+                type="time"
+                value={values.interviewTime}
+                onChange={(event) =>
+                  updateField("interviewTime", event.target.value)
+                }
+              />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              id="interviewReminderEnabled"
+              type="checkbox"
+              checked={values.interviewReminderEnabled}
+              onChange={(event) =>
+                updateField("interviewReminderEnabled", event.target.checked)
+              }
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            Remind me 15 minutes before the interview
+          </label>
+        </div>
+      ) : null}
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>

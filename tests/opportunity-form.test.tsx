@@ -82,6 +82,27 @@ describe("OpportunityForm", () => {
     expect(screen.getByLabelText(/recruiter name/i)).toBeInTheDocument();
   });
 
+  it("shows interview fields when status is Interviewing", () => {
+    const onSubmit = vi.fn();
+    const onCancel = vi.fn();
+
+    render(
+      <OpportunityForm
+        initialValues={{ status: "INTERVIEWING" }}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />,
+    );
+
+    expect(screen.getByLabelText(/interview date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/interview time/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("checkbox", {
+        name: /remind me 15 minutes before the interview/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("fills the form from pasted recruiter email", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn().mockResolvedValue(undefined);

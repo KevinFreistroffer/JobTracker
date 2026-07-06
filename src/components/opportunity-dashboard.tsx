@@ -2,13 +2,14 @@
 
 import { ContactType } from "@prisma/client";
 import { format } from "date-fns";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Bell, Pencil, Plus, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   OpportunityForm,
   OpportunityFormValues,
   toFormValues,
 } from "@/components/opportunity-form";
+import { useInterviewReminders } from "@/hooks/use-interview-reminders";
 import { NotesPreview } from "@/components/notes-preview";
 import { StatusBadge } from "@/components/status-badge";
 import {
@@ -54,8 +55,21 @@ import {
   STATUS_OPTIONS,
 } from "@/lib/constants";
 import { OPPORTUNITY_DRAFT_KEY } from "@/lib/form-drafts";
+import {
+  combineInterviewAt,
+  isInterviewStatus,
+  shouldNotifyInterview,
+} from "@/lib/interview-datetime";
 
-type SortKey = "contactDate" | "companyName" | "status";
+type SortKey = "contactDate" | "companyName" | "status" | "interviewAt";
+
+function formatInterviewAt(value: string | null) {
+  if (!value) {
+    return "—";
+  }
+
+  return format(new Date(value), "MMM d, yyyy 'at' h:mm a");
+}
 
 function buildQuery(
   statusFilter: string,
@@ -119,6 +133,15 @@ export function OpportunityDashboard() {
     void loadOpportunities();
   }, [loadOpportunities]);
 
+  useInterviewReminders({ opportunities });
+
+  const upcomingInterviewReminders = useMemo(() => {
+    const now = new Date();
+    return opportunities.filter((opportunity) =>
+      shouldNotifyInterview(opportunity, now),
+    );
+  }, [opportunities]);
+
   const sortedOpportunities = useMemo(() => {
     const copy = [...opportunities];
     copy.sort((a, b) => {
@@ -126,6 +149,10 @@ export function OpportunityDashboard() {
       if (sortKey === "contactDate") {
         const aTime = a.contactDate ? new Date(a.contactDate).getTime() : 0;
         const bTime = b.contactDate ? new Date(b.contactDate).getTime() : 0;
+        comparison = aTime - bTime;
+      } else if (sortKey === "interviewAt") {
+        const aTime = a.interviewAt ? new Date(a.interviewAt).getTime() : 0;
+        const bTime = b.interviewAt ? new Date(b.interviewAt).getTime() : 0;
         comparison = aTime - bTime;
       } else if (sortKey === "companyName") {
         comparison = (a.companyName ?? "").localeCompare(b.companyName ?? "");
@@ -143,7 +170,7 @@ export function OpportunityDashboard() {
       return;
     }
     setSortKey(key);
-    setSortDirection(key === "contactDate" ? "desc" : "asc");
+    setSortDirection(key === "contactDate" || key === "interviewAt" ? "desc" : "asc");
   }
 
   function openCreateDialog() {
@@ -157,6 +184,10 @@ export function OpportunityDashboard() {
   }
 
   async function handleSubmit(values: OpportunityFormValues) {
+    const interviewAt = isInterviewStatus(values.status)
+      ? combineInterviewAt(values.interviewDate, values.interviewTime)
+      : null;
+
     const payload = {
       ...values,
       contactType: values.contactType || null,
@@ -168,8 +199,15 @@ export function OpportunityDashboard() {
       companyName: values.companyName.trim() || null,
       roleTitle: values.roleTitle.trim() || null,
       contactDate: values.contactDate || null,
+      interviewAt,
+      interviewReminderEnabled: isInterviewStatus(values.status)
+        ? values.interviewReminderEnabled
+        : false,
       notes: values.notes.trim(),
     };
+
+    const { interviewDate: _interviewDate, interviewTime: _interviewTime, ...apiPayload } =
+      payload;
 
     const response = await fetch(
       editingOpportunity
@@ -178,7 +216,7 @@ export function OpportunityDashboard() {
       {
         method: editingOpportunity ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(apiPayload),
       },
     );
 
@@ -274,6 +312,27 @@ export function OpportunityDashboard() {
         </div>
       </div>
 
+      {upcomingInterviewReminders.length > 0 ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="flex items-start gap-3">
+            <Bell className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="space-y-2">
+              <p className="font-medium">Upcoming interview reminders</p>
+              <ul className="space-y-1">
+                {upcomingInterviewReminders.map((opportunity) => (
+                  <li key={opportunity.id}>
+                    {opportunity.companyName ?? "Company not specified"}
+                    {opportunity.roleTitle ? ` — ${opportunity.roleTitle}` : ""}
+                    {": "}
+                    {formatInterviewAt(opportunity.interviewAt)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
@@ -309,6 +368,15 @@ export function OpportunityDashboard() {
                 <button
                   type="button"
                   className="font-medium"
+                  onClick={() => toggleSort("interviewAt")}
+                >
+                  Interview
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  className="font-medium"
                   onClick={() => toggleSort("status")}
                 >
                   Status
@@ -320,13 +388,13 @@ export function OpportunityDashboard() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-slate-500">
+                <TableCell colSpan={8} className="py-8 text-center text-slate-500">
                   Loading opportunities...
                 </TableCell>
               </TableRow>
             ) : sortedOpportunities.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-slate-500">
+                <TableCell colSpan={8} className="py-8 text-center text-slate-500">
                   No opportunities yet. Add your first recruiter email or call.
                 </TableCell>
               </TableRow>
@@ -364,6 +432,11 @@ export function OpportunityDashboard() {
                       ) : null}
                     </TableCell>
                     <TableCell>
+                      {isInterviewStatus(opportunity.status)
+                        ? formatInterviewAt(opportunity.interviewAt)
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
                       <StatusBadge status={opportunity.status} />
                     </TableCell>
                     <TableCell className="text-right">
@@ -389,7 +462,7 @@ export function OpportunityDashboard() {
                   </TableRow>
                   {opportunity.notes ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="pt-0 text-sm text-slate-600">
+                      <TableCell colSpan={8} className="pt-0 text-sm text-slate-600">
                         <NotesPreview notes={opportunity.notes} />
                       </TableCell>
                     </TableRow>
@@ -437,6 +510,12 @@ export function OpportunityDashboard() {
                 <p>{opportunity.recruiterName ?? "Recruiter not specified"}</p>
                 {opportunity.recruiterEmail ? (
                   <p>{opportunity.recruiterEmail}</p>
+                ) : null}
+                {isInterviewStatus(opportunity.status) && opportunity.interviewAt ? (
+                  <p>
+                    Interview: {formatInterviewAt(opportunity.interviewAt)}
+                    {opportunity.interviewReminderEnabled ? " · Reminder on" : ""}
+                  </p>
                 ) : null}
                 {opportunity.notes ? (
                   <NotesPreview

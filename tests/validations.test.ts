@@ -102,6 +102,34 @@ describe("opportunityInputSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("normalizes interview fields for interview statuses", () => {
+    const result = opportunityInputSchema.safeParse({
+      status: "INTERVIEWING",
+      interviewAt: "2025-07-10T14:30:00.000Z",
+      interviewReminderEnabled: true,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.interviewAt).toBeInstanceOf(Date);
+      expect(result.data.interviewReminderEnabled).toBe(true);
+    }
+  });
+
+  it("clears interview fields when status is not interview-related", () => {
+    const result = opportunityInputSchema.safeParse({
+      status: "NEW",
+      interviewAt: "2025-07-10T14:30:00.000Z",
+      interviewReminderEnabled: true,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.interviewAt).toBeNull();
+      expect(result.data.interviewReminderEnabled).toBe(false);
+    }
+  });
+
   it("stores an empty recruiter email for LinkedIn contacts", () => {
     const result = opportunityInputSchema.safeParse({
       contactType: "LINKEDIN",
