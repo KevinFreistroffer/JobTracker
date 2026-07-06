@@ -187,7 +187,7 @@ export function JdLibrary() {
             >
               Application Materials
             </Link>{" "}
-            and click Save to JD Library.
+            and click Generate Materials to add your first entry.
           </div>
         ) : (
           <div className="space-y-3">

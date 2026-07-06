@@ -24,9 +24,7 @@ export function ApplicationMaterialsForm() {
   const { companyName, roleTitle = "", jobDescription } = draft;
   const [materials, setMaterials] = useState<GeneratedMaterials | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [copiedTarget, setCopiedTarget] = useState<CopyTarget | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -37,22 +35,40 @@ export function ApplicationMaterialsForm() {
     setIsGenerating(true);
 
     try {
-      const response = await fetch("/api/application-materials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyName, jobDescription }),
-      });
+      const [materialsResponse, saveResponse] = await Promise.all([
+        fetch("/api/application-materials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ companyName, jobDescription }),
+        }),
+        fetch("/api/job-descriptions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            companyName,
+            roleTitle: roleTitle.trim() || undefined,
+            body: jobDescription,
+          }),
+        }),
+      ]);
 
-      const body = await response.json().catch(() => null);
+      const materialsBody = await materialsResponse.json().catch(() => null);
+      const saveBody = await saveResponse.json().catch(() => null);
 
-      if (!response.ok) {
-        throw new Error(body?.error ?? "Failed to generate application materials");
+      if (!materialsResponse.ok) {
+        throw new Error(
+          materialsBody?.error ?? "Failed to generate application materials",
+        );
+      }
+
+      if (!saveResponse.ok) {
+        throw new Error(saveBody?.error ?? "Failed to save job description");
       }
 
       setMaterials({
-        coverLetter: body.coverLetter,
-        shortAnswer: body.shortAnswer,
-        longAnswer: body.longAnswer ?? body.answer,
+        coverLetter: materialsBody.coverLetter,
+        shortAnswer: materialsBody.shortAnswer,
+        longAnswer: materialsBody.longAnswer ?? materialsBody.answer,
       });
     } catch (generateError) {
       setError(
@@ -62,40 +78,6 @@ export function ApplicationMaterialsForm() {
       );
     } finally {
       setIsGenerating(false);
-    }
-  }
-
-  async function handleSaveToLibrary() {
-    setSaveMessage(null);
-    setError(null);
-    setIsSaving(true);
-
-    try {
-      const response = await fetch("/api/job-descriptions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companyName,
-          roleTitle: roleTitle.trim() || undefined,
-          body: jobDescription,
-        }),
-      });
-
-      const body = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(body?.error ?? "Failed to save job description");
-      }
-
-      setSaveMessage("Saved to JD Library.");
-    } catch (saveError) {
-      setError(
-        saveError instanceof Error
-          ? saveError.message
-          : "Failed to save job description",
-      );
-    } finally {
-      setIsSaving(false);
     }
   }
 
@@ -184,34 +166,15 @@ export function ApplicationMaterialsForm() {
             required
           />
           <p className="text-sm text-slate-500">
-            Shared with Interview Prep. Save to build your JD library.
+            Shared with Interview Prep. Generating materials also saves to your
+            JD library.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Button type="submit" disabled={isGenerating}>
-            {isGenerating ? "Generating..." : "Generate Materials"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={
-              isSaving ||
-              !companyName.trim() ||
-              !jobDescription.trim()
-            }
-            onClick={() => void handleSaveToLibrary()}
-          >
-            {isSaving ? "Saving..." : "Save to JD Library"}
-          </Button>
-        </div>
+        <Button type="submit" disabled={isGenerating}>
+          {isGenerating ? "Generating..." : "Generate Materials"}
+        </Button>
       </form>
-
-      {saveMessage ? (
-        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-          {saveMessage}
-        </div>
-      ) : null}
 
       {error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
