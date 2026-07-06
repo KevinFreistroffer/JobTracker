@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getOpenAiApiKey } from "@/lib/openai-api-key";
 import { parseRecruiterEmail } from "@/lib/parse-recruiter-email";
+import { requireSession } from "@/lib/require-session";
 
 const requestSchema = z.object({
   emailText: z.string().trim().min(1, "Recruiter email text is required"),
 });
 
 export async function POST(request: NextRequest) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const apiKey = getOpenAiApiKey();
     if (!apiKey) {

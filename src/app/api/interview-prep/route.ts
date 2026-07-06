@@ -3,6 +3,7 @@ import { z } from "zod";
 import { generateInterviewPrep } from "@/lib/interview-prep";
 import { getOpenAiApiKey } from "@/lib/openai-api-key";
 import { getResumeText } from "@/lib/resume";
+import { requireSession } from "@/lib/require-session";
 
 const requestSchema = z.object({
   companyName: z.string().trim().min(1, "Company name is required"),
@@ -10,6 +11,9 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const apiKey = getOpenAiApiKey();
     if (!apiKey) {

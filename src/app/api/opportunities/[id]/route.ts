@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toErrorResponse } from "@/lib/api-error";
+import { requireSession } from "@/lib/require-session";
 import {
   opportunityUpdateSchema,
   serializeOpportunity,
@@ -11,6 +12,9 @@ type RouteContext = {
 };
 
 export async function GET(_request: NextRequest, context: RouteContext) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await context.params;
     const opportunity = await prisma.opportunity.findUnique({ where: { id } });
@@ -29,6 +33,9 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 }
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await context.params;
     const body = await request.json();
@@ -61,6 +68,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await context.params;
     const existing = await prisma.opportunity.findUnique({ where: { id } });

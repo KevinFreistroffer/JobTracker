@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { SessionProvider } from "next-auth/react";
 import { describe, expect, it, vi } from "vitest";
 import { AppNav } from "@/components/app-nav";
 
@@ -8,7 +9,11 @@ vi.mock("next/navigation", () => ({
 
 describe("AppNav", () => {
   it("renders navigation tabs", () => {
-    render(<AppNav />);
+    render(
+      <SessionProvider session={null}>
+        <AppNav />
+      </SessionProvider>,
+    );
 
     expect(screen.getByRole("link", { name: "Job Tracker" })).toHaveAttribute(
       "href",

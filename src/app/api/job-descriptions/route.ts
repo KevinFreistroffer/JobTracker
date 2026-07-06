@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toErrorResponse } from "@/lib/api-error";
+import { requireSession } from "@/lib/require-session";
 import {
   jobDescriptionInputSchema,
   serializeJobDescription,
 } from "@/lib/validations";
 
 export async function GET() {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const jobDescriptions = await prisma.jobDescription.findMany({
       orderBy: { createdAt: "desc" },
@@ -23,6 +27,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const body = await request.json();
     const parsed = jobDescriptionInputSchema.safeParse(body);

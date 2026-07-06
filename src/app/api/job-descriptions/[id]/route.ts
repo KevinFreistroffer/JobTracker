@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toErrorResponse } from "@/lib/api-error";
+import { requireSession } from "@/lib/require-session";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
 export async function DELETE(_request: NextRequest, context: RouteContext) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const { id } = await context.params;
     const existing = await prisma.jobDescription.findUnique({ where: { id } });

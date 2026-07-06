@@ -2,12 +2,16 @@ import { ContactType, OpportunityStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toErrorResponse } from "@/lib/api-error";
+import { requireSession } from "@/lib/require-session";
 import {
   opportunityInputSchema,
   serializeOpportunity,
 } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const statusParam = request.nextUrl.searchParams.get("status");
     const contactTypeParam = request.nextUrl.searchParams.get("contactType");
@@ -59,6 +63,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const body = await request.json();
     const parsed = opportunityInputSchema.safeParse(body);

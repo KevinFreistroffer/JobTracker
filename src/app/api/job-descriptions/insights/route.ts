@@ -7,12 +7,16 @@ import {
   MAX_CORPUS_CHARS,
 } from "@/lib/jd-insights";
 import { getOpenAiApiKey } from "@/lib/openai-api-key";
+import { requireSession } from "@/lib/require-session";
 import {
   jobDescriptionInsightSchema,
   serializeJobDescription,
 } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
+  const { unauthorized } = await requireSession();
+  if (unauthorized) return unauthorized;
+
   try {
     const apiKey = getOpenAiApiKey();
     if (!apiKey) {
