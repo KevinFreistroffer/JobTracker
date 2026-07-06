@@ -7,6 +7,8 @@ import { OPPORTUNITY_DRAFT_KEY } from "@/lib/form-drafts";
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   window.localStorage.clear();
 });
 
@@ -78,6 +80,54 @@ describe("OpportunityForm", () => {
       container.querySelector("#recruiterEmail"),
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText(/recruiter name/i)).toBeInTheDocument();
+  });
+
+  it("fills the form from pasted recruiter email", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const onCancel = vi.fn();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          contactType: "EMAIL",
+          recruiterName: "Jane Smith",
+          recruiterEmail: "jane@acme.com",
+          companyName: "Acme Corp",
+          roleTitle: "Senior Software Engineer",
+          contactDate: "2026-07-06",
+          notes: "Remote role.",
+        }),
+      }),
+    );
+
+    render(
+      <OpportunityForm
+        enableEmailImport
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+        submitLabel="Create"
+      />,
+    );
+
+    await user.type(
+      screen.getByLabelText(/import from email/i),
+      "From: Jane Smith <jane@acme.com>",
+    );
+    await user.click(screen.getByRole("button", { name: /fill from email/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/recruiter name/i)).toHaveValue("Jane Smith");
+      expect(screen.getByLabelText(/recruiter email/i)).toHaveValue(
+        "jane@acme.com",
+      );
+      expect(screen.getByLabelText(/company name/i)).toHaveValue("Acme Corp");
+      expect(screen.getByLabelText(/role title/i)).toHaveValue(
+        "Senior Software Engineer",
+      );
+    });
   });
 
   it("restores and clears a persisted draft", async () => {

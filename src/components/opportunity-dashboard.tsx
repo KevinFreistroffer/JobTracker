@@ -479,6 +479,7 @@ export function OpportunityDashboard() {
           <OpportunityForm
             key={editingOpportunity?.id ?? "new"}
             initialValues={toFormValues(editingOpportunity)}
+            enableEmailImport={!editingOpportunity}
             persistKey={
               editingOpportunity ? undefined : OPPORTUNITY_DRAFT_KEY
             }

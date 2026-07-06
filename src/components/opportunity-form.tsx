@@ -20,6 +20,7 @@ import {
   OpportunityRecord,
   STATUS_OPTIONS,
 } from "@/lib/constants";
+import { toOpportunityFormValues } from "@/lib/parse-recruiter-email";
 
 export type OpportunityFormValues = {
   contactType: ContactType | "";
@@ -35,6 +36,7 @@ export type OpportunityFormValues = {
 type OpportunityFormProps = {
   initialValues?: Partial<OpportunityFormValues>;
   persistKey?: string;
+  enableEmailImport?: boolean;
   onSubmit: (values: OpportunityFormValues) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
@@ -62,6 +64,7 @@ export function toFormValues(
 export function OpportunityForm({
   initialValues,
   persistKey,
+  enableEmailImport = false,
   onSubmit,
   onCancel,
   submitLabel = "Save",
@@ -74,6 +77,9 @@ export function OpportunityForm({
     },
     Boolean(persistKey),
   );
+  const [emailPaste, setEmailPaste] = useState("");
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -119,6 +125,41 @@ export function OpportunityForm({
     return Object.keys(nextErrors).length === 0;
   }
 
+  async function handleParseEmail() {
+    setParseError(null);
+    setIsParsing(true);
+
+    try {
+      const response = await fetch("/api/opportunities/parse-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailText: emailPaste }),
+      });
+
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(body?.error ?? "Failed to parse recruiter email");
+      }
+
+      const parsed = toOpportunityFormValues(body);
+      setValues((current) => ({
+        ...current,
+        ...parsed,
+        status: current.status,
+      }));
+      setErrors({});
+    } catch (error) {
+      setParseError(
+        error instanceof Error
+          ? error.message
+          : "Failed to parse recruiter email",
+      );
+    } finally {
+      setIsParsing(false);
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!validate()) {
@@ -136,6 +177,35 @@ export function OpportunityForm({
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
+      {enableEmailImport ? (
+        <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div>
+            <Label htmlFor="recruiterEmailPaste">Import from Email</Label>
+            <p className="text-sm text-slate-500">
+              Paste the full recruiter email or message to auto-fill the form.
+            </p>
+          </div>
+          <Textarea
+            id="recruiterEmailPaste"
+            value={emailPaste}
+            onChange={(event) => setEmailPaste(event.target.value)}
+            placeholder="Paste the recruiter email here..."
+            className="min-h-[140px] bg-white"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isParsing || !emailPaste.trim()}
+            onClick={() => void handleParseEmail()}
+          >
+            {isParsing ? "Filling..." : "Fill from Email"}
+          </Button>
+          {parseError ? (
+            <p className="text-sm text-red-600">{parseError}</p>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="contactType">Contact Type</Label>
