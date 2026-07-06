@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const PREVIEW_LENGTH = 160;
+const PREVIEW_LENGTH = 200;
 
 export type JobDescriptionRecord = {
   id: string;
@@ -29,10 +29,108 @@ export type JobDescriptionRecord = {
   updatedAt: string;
 };
 
+type SavedJobDescriptionItemProps = {
+  jobDescription: JobDescriptionRecord;
+  expanded: boolean;
+  onToggle: () => void;
+  onDelete: () => void;
+};
+
+export function getJobDescriptionPreview(
+  body: string,
+  expanded: boolean,
+  previewLength = PREVIEW_LENGTH,
+) {
+  const needsTruncation = body.length > previewLength;
+
+  if (!needsTruncation || expanded) {
+    return {
+      text: body,
+      needsTruncation,
+    };
+  }
+
+  return {
+    text: `${body.slice(0, previewLength).trimEnd()}…`,
+    needsTruncation,
+  };
+}
+
+export function SavedJobDescriptionItem({
+  jobDescription,
+  expanded,
+  onToggle,
+  onDelete,
+}: SavedJobDescriptionItemProps) {
+  const { text, needsTruncation } = getJobDescriptionPreview(
+    jobDescription.body,
+    expanded,
+  );
+
+  return (
+    <article className="rounded-md border border-slate-200 p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div>
+            <h3 className="font-medium text-slate-900">
+              {jobDescription.companyName}
+              {jobDescription.roleTitle
+                ? ` — ${jobDescription.roleTitle}`
+                : ""}
+            </h3>
+            <p className="text-xs text-slate-500">
+              Saved {format(new Date(jobDescription.createdAt), "MMM d, yyyy")}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="w-full text-left"
+            onClick={() => {
+              if (needsTruncation) {
+                onToggle();
+              }
+            }}
+            aria-expanded={needsTruncation ? expanded : undefined}
+            disabled={!needsTruncation}
+          >
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+              {text}
+            </p>
+          </button>
+
+          {needsTruncation ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onToggle}
+              aria-expanded={expanded}
+            >
+              {expanded ? "Show less" : "Show full description"}
+            </Button>
+          ) : null}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+          <span className="sr-only">Delete</span>
+        </Button>
+      </div>
+    </article>
+  );
+}
+
 export function JdLibrary() {
   const [jobDescriptions, setJobDescriptions] = useState<JobDescriptionRecord[]>(
     [],
   );
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
@@ -56,6 +154,7 @@ export function JdLibrary() {
       }
 
       setJobDescriptions(body as JobDescriptionRecord[]);
+      setExpandedIds(new Set());
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -70,6 +169,18 @@ export function JdLibrary() {
   useEffect(() => {
     void loadJobDescriptions();
   }, [loadJobDescriptions]);
+
+  function toggleExpanded(id: string) {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
 
   async function handleGenerateInsight(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -160,20 +271,25 @@ export function JdLibrary() {
       ) : null}
 
       <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            Saved Job Descriptions
-          </h2>
-          <p className="text-sm text-slate-500">
-            Save job descriptions from{" "}
-            <Link
-              href="/application-materials"
-              className="font-medium text-slate-900 underline underline-offset-2"
-            >
-              Application Materials
-            </Link>
-            .
-          </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">
+              Saved Job Descriptions
+              {!isLoading && jobDescriptions.length > 0
+                ? ` (${jobDescriptions.length})`
+                : ""}
+            </h2>
+            <p className="text-sm text-slate-500">
+              Save job descriptions from{" "}
+              <Link
+                href="/application-materials"
+                className="font-medium text-slate-900 underline underline-offset-2"
+              >
+                Application Materials
+              </Link>
+              .
+            </p>
+          </div>
         </div>
 
         {isLoading ? (
@@ -190,40 +306,18 @@ export function JdLibrary() {
             and click Generate Materials to add your first entry.
           </div>
         ) : (
-          <div className="space-y-3">
+          <ul className="space-y-3">
             {jobDescriptions.map((jobDescription) => (
-              <div
-                key={jobDescription.id}
-                className="flex items-start justify-between gap-4 rounded-md border border-slate-200 p-4"
-              >
-                <div className="min-w-0 space-y-1">
-                  <p className="font-medium text-slate-900">
-                    {jobDescription.companyName}
-                    {jobDescription.roleTitle
-                      ? ` — ${jobDescription.roleTitle}`
-                      : ""}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Saved {format(new Date(jobDescription.createdAt), "MMM d, yyyy")}
-                  </p>
-                  <p className="text-sm leading-relaxed text-slate-700">
-                    {jobDescription.body.length > PREVIEW_LENGTH
-                      ? `${jobDescription.body.slice(0, PREVIEW_LENGTH)}...`
-                      : jobDescription.body}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDeletingJobDescription(jobDescription)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
-                </Button>
-              </div>
+              <li key={jobDescription.id}>
+                <SavedJobDescriptionItem
+                  jobDescription={jobDescription}
+                  expanded={expandedIds.has(jobDescription.id)}
+                  onToggle={() => toggleExpanded(jobDescription.id)}
+                  onDelete={() => setDeletingJobDescription(jobDescription)}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
 
