@@ -4,6 +4,8 @@ export type CoverLetterInput = {
   jobDescription: string;
 };
 
+const CANDIDATE_NAME = "Kevin Freistroffer";
+
 export function buildCoverLetterPrompt({
   resume,
   companyName,
@@ -26,7 +28,7 @@ Use the candidate resume and job description below. The cover letter should:
 Formatting:
 - Start with a greeting (use "Dear Hiring Manager," if no specific name is available)
 - Use complete paragraphs, not bullet points
-- End with "Sincerely," followed by the candidate's name from the resume
+- End with "Sincerely," followed by the candidate's name: ${CANDIDATE_NAME}. Do not use placeholder text.
 
 Candidate resume:
 ${resume.trim()}

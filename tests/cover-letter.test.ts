@@ -24,6 +24,9 @@ describe("buildCoverLetterPrompt", () => {
     expect(prompt).toContain(
       "Build healthcare software with React and TypeScript.",
     );
+    expect(prompt).toContain('candidate\'s name: Kevin Freistroffer');
+    expect(prompt).not.toContain("[Your Name]");
+    expect(prompt).not.toContain("Your Name");
   });
 
   it("instructs the model to stay truthful to the resume", () => {

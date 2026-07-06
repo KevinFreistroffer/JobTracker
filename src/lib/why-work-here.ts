@@ -20,7 +20,7 @@ Use the candidate resume and job description below.
 
 The short answer should:
 - Be 1-2 sentences total
-- Sound like this style: "I am excited about the opportunity to work at [company] because I am passionate about [mission/domain]. With over eight years of experience as a full-stack software engineer, I have honed my skills in [specific skills], which align with [company]'s needs."
+- Sound like this style (do not include bracket placeholders): "I am excited about the opportunity to work at ${companyName} because I am passionate about the mission and the product domain. With over eight years of experience as a full-stack software engineer, I have honed skills that align with the role’s needs."
 - Be specific to ${companyName}; do not copy the example wording exactly unless it genuinely fits the job description
 
 The long answer should:
