@@ -1,74 +1,168 @@
-Kevin Freistroffer 
+Here are complete answers for all three CodeSignal problems, with how each one was solved.
 
-Chicago, IL | (442) 999-0986 | kfreistroffer@gmail.com | GitHub | LinkedIn 
+1. Comment Length Calculator
+Problem: Count non-space characters in source code, ignoring // line comments and /* */ block comments.
 
-Summary 
+Solution
+def solution(source):
+    NORMAL, LINE, BLOCK = 0, 1, 2
+    state = NORMAL
+    count = 0
+    text = '\n'.join(source)
+    i = 0
+    n = len(text)
+    while i < n:
+        c = text[i]
+        if state == NORMAL:
+            if c.isspace():
+                pass
+            elif c == '/' and i + 1 < n:
+                if text[i + 1] == '/':
+                    state = LINE
+                    i += 2
+                    continue
+                elif text[i + 1] == '*':
+                    state = BLOCK
+                    i += 2
+                    continue
+                else:
+                    count += 1
+            else:
+                count += 1
+        elif state == LINE:
+            if c == '\n':
+                state = NORMAL
+        elif state == BLOCK:
+            if c == '*' and i + 1 < n and text[i + 1] == '/':
+                state = NORMAL
+                i += 2
+                continue
+        i += 1
+    return count
+How it was solved
+Use a state machine with three modes:
 
-Senior Full-Stack Software Engineer with 7+ years of experience delivering scalable web applications, enterprise solutions, microservices, and micro frontends, with hands-on AWS and AI-assisted development workflows. AWS Certified Cloud Practitioner with 15+ years of programming experience. 
+State	Behavior
+NORMAL
+Count non-space chars; // → LINE, /* → BLOCK
+LINE
+Ignore until newline
+BLOCK
+Ignore until */
+Join all lines with \n so block comments can span multiple lines, then scan left to right once.
 
-Experience 
+Example: "int b = 47;/*37;*///41;"
+→ count int b = 47; (8 chars), skip /*37;*/, skip //41; → 8
 
-Capital One | Software Engineer - Contract | Chicago, IL                                           May 2025 – June 2026 
+Total for the full example: 7 + 8 + 7 + 12 = 34
 
-Supported multiple production codebases using React, TypeScript, Python, Scala, AWS, and infrastructure tooling, delivering focused updates such as UI modals, API response fields, build configuration changes, test improvements, and observability enhancements. 
+2. Hostname Tracker (allocate / deallocate)
+Problem: Hostnames are {hostType}{number} (e.g. apibox1). allocate returns the lowest available number; deallocate releases it. Only implement the Tracker class — don't modify CodeSignal's existing solution() driver.
 
-Strengthened CI test coverage and execution clarity by separating mocked component tests from live dependency tests in Jenkins, reducing duplicate test execution and improving confidence in Python Behave/Gherkin end-to-end flows. 
+Solution
+class Tracker:
+    def __init__(self):
+        self.next_num = {}
+        self.free = {}
+        self.allocated = {}
+    def _parse(self, hostname):
+        i = len(hostname) - 1
+        while i >= 0 and hostname[i].isdigit():
+            i -= 1
+        return hostname[:i + 1], int(hostname[i + 1:])
+    def _ensure(self, hostType):
+        if hostType not in self.next_num:
+            self.next_num[hostType] = 1
+            self.free[hostType] = []
+            self.allocated[hostType] = set()
+    def allocate(self, hostType):
+        self._ensure(hostType)
+        if self.free[hostType]:
+            num = min(self.free[hostType])
+            self.free[hostType].remove(num)
+        else:
+            num = self.next_num[hostType]
+            self.next_num[hostType] += 1
+        self.allocated[hostType].add(num)
+        return hostType + str(num)
+    def deallocate(self, hostname):
+        hostType, num = self._parse(hostname)
+        if hostType not in self.allocated:
+            return
+        if num not in self.allocated[hostType]:
+            return
+        self.allocated[hostType].remove(num)
+        self.free[hostType].append(num)
+How it was solved
+Per hostType, track three things:
 
-Expanded monitoring for Scala Glue jobs by adding Telemetry-emitted runtime metrics consumed in New Relic dashboards and designed a broader per-job-run metrics implementation. 
+next_num — next never-used number (starts at 1)
+free — list of released numbers (reuse lowest first via min())
+allocated — numbers currently in use (so invalid deallocates are no-ops)
+allocate: Reuse the smallest freed number if any; otherwise use next_num and increment.
 
-Provided production support for 1,000+ internal platform users through PagerDuty incident response, root-cause analysis, and bug triage using AWS, Splunk, Observe, and New Relic. 
+deallocate: Parse trailing digits as the number, remove from allocated, add back to free.
 
-Integrated Claude Code, custom Claude skills, and the company’s internal AI harness as the first step of implementation work, improving development speed, code quality, and test coverage. 
+Example:
 
-Capital One | Software Engineer - Contract | Remote                                              Aug 2021 – March 2024 
+Query	Result
+A apibox
+apibox1
+A apibox
+apibox2
+D apibox1
+(frees 1)
+A apibox
+apibox1 (reused)
+A sitebox
+sitebox1
+Output: ["apibox1", "apibox2", "apibox1", "sitebox1"]
 
-Supported a data governance platform for 1,000+ internal users—AWS dataset registration, metadata requirements, and regex-driven exclusion and custom data workflows. 
+3. Pairs with Difference k
+Problem: Count pairs in array a whose difference equals k. Return the count mod 10⁹ + 7.
 
-Collaborated with teammates to deliver full-stack features in React, TypeScript, Python, DynamoDB, S3, RDS, PostgreSQL, and Lambda: dataset search and filtering, backend APIs, custom filters, and governance automation. 
+Solution
+MOD = 10**9 + 7
+def solution(k, a):
+    count = {}
+    for num in a:
+        count[num] = count.get(num, 0) + 1
+    result = 0
+    for x in count:
+        if x + k in count:
+            result = (result + count[x] * count[x + k]) % MOD
+    return result
+How it was solved
+Build a frequency map of each value.
+For each value x, if x + k exists, add count[x] * count[x + k] pairs.
+Because k ≥ 1, each pair is counted once (only when x is the smaller value).
 
-Improved quality and delivery through unit, regression, and performance testing, Jenkins CI/CD, operational AWS QuickSight dashboard, and technical documentation. 
+Example: k = 3, a = [1, 6, 8, 2, 4, 9, 12]
 
-Cisco | Software Engineer | Remote	                                                                                June 2021 – Aug 2021 
+x	x + k	Pairs
+1
+4
+1 × 1 = 1
+6
+9
+1 × 1 = 1
+9
+12
+1 × 1 = 1
+Output: 3
 
-Implemented PHP/SQL feature work and bug fixes; evaluated calendar integration options. 
+With duplicates, e.g. [3, 3, 6, 6] and k = 3 → 2 × 2 = 4 pairs.
 
-Thermo Fisher | Frontend Developer - Contract | Remote	                                        Sep 2020 – April 2021 
+Quick comparison
+Problem	Technique	Time
+Comment length
+State machine, single pass
+O(total chars)
+Tracker
+Per-type counters + free pool
+O(log n) per op with heap, O(n) with min()
+Pairs with diff k
+Frequency map
+O(n)
+If you want, I can walk through any one of these step-by-step on a specific test case.
 
-Built React and TypeScript user interfaces for order history and order details on a public-facing Thermo Fisher Scientific e-commerce site, using Figma designs and shared component libraries. 
-
-Developed strongly typed components and data models to support consistent display of order status, line items, and related customer order data. 
-
-Supported sprint releases with unit tests, deployment validation, and bug fixes on order-management flows. 
-
-Google | AngularDart Developer - Contract | San Jose, CA	                                         Nov 2019 – May 2020 
-
-Migrated Angular/TypeScript services to AngularDart with feature parity in a large monorepo. 
-
-Designed and implemented a proxy layer between Angular HTTP services and an SAP database. 
-
-Apple | Technical Lead – Contract | San Jose, CA                                                            July 2019 – Oct 2019 
-
-Built Angular with TypeScript user interfaces from Figma for an internal equipment ordering app, integrated with backend APIs. 
-
-Implemented form validation, submission, and error-handling workflows. 
-
-ImYourDoc | Frontend Developer - Contract | Remote                                                April 2018 – Feb 2019 
-
-Delivered front-end enhancements and bug fixes on a React telehealth app. 
-
- 
-
-Certifications 
-
-    AWS Certified Cloud Practitioner (Aug 2024) 
-
-Badge ID: 0861f4d2-046c-423c-877d-3e7361429639 
-
-Skills 
-
-Languages: JavaScript, TypeScript, Python, Scala, Dart, PHP, HTML, CSS 
-Frontend: React, Next.js, Angular, AngularDart, Jest, Cypress, Playwright 
-Backend: Node.js, Express, FastAPI, Django, Behave, REST APIs 
-Cloud & DevOps: AWS, Lambda, Step Functions, Glue, DynamoDB, S3, RDS, PostgreSQL, Jenkins, Docker 
-Observability: New Relic, Splunk, Observe, CloudWatch, Telemetry 
-AI Tools: Claude Code, Cursor, Copilot, Windsurf, custom Claude skills, RAG 

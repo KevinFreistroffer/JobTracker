@@ -5,11 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { usePersistedState } from "@/hooks/use-persisted-state";
-import {
-  APPLICATION_MATERIALS_DRAFT_KEY,
-  emptyJobDescriptionDraft,
-} from "@/lib/form-drafts";
+import { useSharedJobDraft } from "@/hooks/use-shared-job-draft";
 import {
   buildCoverLetterFilename,
   downloadWordFile,
@@ -24,10 +20,7 @@ type GeneratedMaterials = {
 type CopyTarget = "coverLetter" | "shortAnswer" | "longAnswer";
 
 export function ApplicationMaterialsForm() {
-  const [draft, setDraft] = usePersistedState(
-    APPLICATION_MATERIALS_DRAFT_KEY,
-    emptyJobDescriptionDraft,
-  );
+  const [draft, setDraft] = useSharedJobDraft();
   const { companyName, jobDescription } = draft;
   const [materials, setMaterials] = useState<GeneratedMaterials | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -139,6 +132,9 @@ export function ApplicationMaterialsForm() {
             className="min-h-[240px]"
             required
           />
+          <p className="text-sm text-slate-500">
+            This job description is shared with Interview Prep.
+          </p>
         </div>
 
         <Button type="submit" disabled={isGenerating}>

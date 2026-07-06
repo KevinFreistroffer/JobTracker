@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { href: "/", label: "Job Tracker" },
   { href: "/application-materials", label: "Application Materials" },
+  { href: "/interview-prep", label: "Interview Prep" },
 ] as const;
 
 export function AppNav() {
