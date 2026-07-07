@@ -2,9 +2,11 @@ import { ContactType, OpportunityStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { toErrorResponse } from "@/lib/api-error";
+import { saveJobDescriptionFromOpportunity } from "@/lib/save-job-description-from-opportunity";
 import { requireSession } from "@/lib/require-session";
 import {
   opportunityInputSchema,
+  serializeJobDescription,
   serializeOpportunity,
 } from "@/lib/validations";
 
@@ -77,11 +79,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const {
+      jobDescription,
+      isAiRole,
+      ...opportunityData
+    } = parsed.data;
+
     const opportunity = await prisma.opportunity.create({
-      data: parsed.data,
+      data: opportunityData,
     });
 
-    return NextResponse.json(serializeOpportunity(opportunity), { status: 201 });
+    const savedJobDescription = await saveJobDescriptionFromOpportunity({
+      companyName: opportunity.companyName,
+      roleTitle: opportunity.roleTitle,
+      jobDescription,
+      isAiRole,
+    });
+
+    return NextResponse.json(
+      {
+        ...serializeOpportunity(opportunity),
+        savedJobDescription: savedJobDescription
+          ? serializeJobDescription(savedJobDescription)
+          : null,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     return toErrorResponse("Failed to create opportunity", error);
   }

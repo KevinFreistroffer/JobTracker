@@ -204,6 +204,12 @@ export function OpportunityDashboard() {
         ? values.interviewReminderEnabled
         : false,
       notes: values.notes.trim(),
+      ...(!editingOpportunity
+        ? {
+            jobDescription: values.jobDescription.trim() || null,
+            isAiRole: values.isAiRole,
+          }
+        : {}),
     };
 
     const { interviewDate: _interviewDate, interviewTime: _interviewTime, ...apiPayload } =
@@ -559,6 +565,7 @@ export function OpportunityDashboard() {
             key={editingOpportunity?.id ?? "new"}
             initialValues={toFormValues(editingOpportunity)}
             enableEmailImport={!editingOpportunity}
+            enableJobDescriptionSave={!editingOpportunity}
             persistKey={
               editingOpportunity ? undefined : OPPORTUNITY_DRAFT_KEY
             }

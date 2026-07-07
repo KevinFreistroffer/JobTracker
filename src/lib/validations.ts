@@ -8,7 +8,7 @@ const statusSchema = z.nativeEnum(OpportunityStatus);
 
 const optionalTextSchema = z.union([z.string().trim(), z.null()]).optional();
 
-const opportunityObjectSchema = z.object({
+const opportunityCoreObjectSchema = z.object({
   contactType: contactTypeSchema.nullable().optional(),
   status: statusSchema.optional(),
   recruiterName: optionalTextSchema,
@@ -23,6 +23,11 @@ const opportunityObjectSchema = z.object({
     .optional(),
   interviewReminderEnabled: z.boolean().optional(),
   notes: z.union([z.string().trim(), z.null()]).optional(),
+});
+
+const opportunityObjectSchema = opportunityCoreObjectSchema.extend({
+  jobDescription: z.union([z.string().trim(), z.null()]).optional(),
+  isAiRole: z.boolean().optional(),
 });
 
 type OpportunityObject = z.infer<typeof opportunityObjectSchema>;
@@ -169,10 +174,12 @@ export const opportunityInputSchema = opportunityObjectSchema
       interviewAt: normalized.interviewAt ?? null,
       interviewReminderEnabled: normalized.interviewReminderEnabled ?? false,
       notes: normalized.notes ?? "",
+      jobDescription: normalizeOptionalText(data.jobDescription) ?? null,
+      isAiRole: data.isAiRole,
     };
   });
 
-export const opportunityUpdateSchema = opportunityObjectSchema
+export const opportunityUpdateSchema = opportunityCoreObjectSchema
   .partial()
   .superRefine((data, ctx) => {
     if (data.recruiterEmail === undefined) {

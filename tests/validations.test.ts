@@ -73,6 +73,21 @@ describe("opportunityInputSchema", () => {
     }
   });
 
+  it("accepts optional job description fields for JD library save", () => {
+    const result = opportunityInputSchema.safeParse({
+      companyName: "Acme",
+      roleTitle: "AI Lead",
+      jobDescription: "Own LLM deployment.",
+      isAiRole: true,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.jobDescription).toBe("Own LLM deployment.");
+      expect(result.data.isAiRole).toBe(true);
+    }
+  });
+
   it("accepts null notes and stores an empty string", () => {
     const result = opportunityInputSchema.safeParse({
       contactType: "EMAIL",
@@ -182,6 +197,21 @@ describe("opportunityUpdateSchema", () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.notes).toBeUndefined();
+    }
+  });
+
+  it("ignores job description fields on partial updates", () => {
+    const result = opportunityUpdateSchema.safeParse({
+      status: "INTERVIEWED",
+      jobDescription: "Should not be stored on opportunity",
+      isAiRole: true,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.status).toBe("INTERVIEWED");
+      expect("jobDescription" in result.data).toBe(false);
+      expect("isAiRole" in result.data).toBe(false);
     }
   });
 });

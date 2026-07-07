@@ -13,6 +13,7 @@ export type ParsedRecruiterEmail = {
   roleTitle: string | null;
   contactDate: string | null;
   notes: string | null;
+  jobDescription: string | null;
 };
 
 export const parsedRecruiterEmailSchema = z.object({
@@ -27,6 +28,7 @@ export const parsedRecruiterEmailSchema = z.object({
     .nullable()
     .optional(),
   notes: z.string().nullable().optional(),
+  jobDescription: z.string().nullable().optional(),
 });
 
 export function buildParseRecruiterEmailPrompt(emailText: string) {
@@ -40,6 +42,7 @@ Return a JSON object with exactly these keys:
 - "roleTitle": Job title or role being discussed, or null if unknown.
 - "contactDate": Email or message date in YYYY-MM-DD format if it can be determined from headers or content, otherwise null.
 - "notes": A concise summary of useful follow-up details from the message (compensation, location, next steps, links, urgency). Do not repeat fields already captured above. Use an empty string if nothing extra is useful.
+- "jobDescription": The full job description text if it appears in the message (requirements, responsibilities, qualifications). Use null if no job description is included. Do not summarize—copy the complete JD when present.
 
 Use null for unknown values. Do not invent details that are not supported by the message.
 
@@ -69,6 +72,7 @@ export function parseRecruiterEmailResponse(content: string): ParsedRecruiterEma
     roleTitle: result.data.roleTitle?.trim() || null,
     contactDate: result.data.contactDate ?? null,
     notes: result.data.notes?.trim() || null,
+    jobDescription: result.data.jobDescription?.trim() || null,
   };
 }
 
@@ -119,15 +123,23 @@ export async function parseRecruiterEmail(
   return parseRecruiterEmailResponse(content);
 }
 
+import { ContactType } from "@prisma/client";
+import { suggestIsAiRole } from "@/lib/suggest-is-ai-role";
+
 export function toOpportunityFormValues(parsed: ParsedRecruiterEmail) {
+  const jobDescription = parsed.jobDescription ?? "";
+  const roleTitle = parsed.roleTitle ?? "";
+
   return {
     contactType: parsed.contactType ?? ContactType.EMAIL,
     status: "NEW" as const,
     recruiterName: parsed.recruiterName ?? "",
     recruiterEmail: parsed.recruiterEmail ?? "",
     companyName: parsed.companyName ?? "",
-    roleTitle: parsed.roleTitle ?? "",
+    roleTitle,
     contactDate: parsed.contactDate ?? "",
     notes: parsed.notes ?? "",
+    jobDescription,
+    isAiRole: suggestIsAiRole(roleTitle || null, jobDescription),
   };
 }

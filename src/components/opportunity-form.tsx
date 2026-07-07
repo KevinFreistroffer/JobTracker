@@ -26,6 +26,7 @@ import {
   splitInterviewAt,
 } from "@/lib/interview-datetime";
 import { toOpportunityFormValues } from "@/lib/parse-recruiter-email";
+import { suggestIsAiRole } from "@/lib/suggest-is-ai-role";
 
 export type OpportunityFormValues = {
   contactType: ContactType | "";
@@ -39,12 +40,15 @@ export type OpportunityFormValues = {
   interviewTime: string;
   interviewReminderEnabled: boolean;
   notes: string;
+  jobDescription: string;
+  isAiRole: boolean;
 };
 
 type OpportunityFormProps = {
   initialValues?: Partial<OpportunityFormValues>;
   persistKey?: string;
   enableEmailImport?: boolean;
+  enableJobDescriptionSave?: boolean;
   onSubmit: (values: OpportunityFormValues) => Promise<void>;
   onCancel: () => void;
   submitLabel?: string;
@@ -73,6 +77,8 @@ export function toFormValues(
     interviewTime,
     interviewReminderEnabled: opportunity.interviewReminderEnabled ?? false,
     notes: opportunity.notes ?? "",
+    jobDescription: "",
+    isAiRole: false,
   };
 }
 
@@ -80,6 +86,7 @@ export function OpportunityForm({
   initialValues,
   persistKey,
   enableEmailImport = false,
+  enableJobDescriptionSave = false,
   onSubmit,
   onCancel,
   submitLabel = "Save",
@@ -102,7 +109,18 @@ export function OpportunityForm({
     key: K,
     value: OpportunityFormValues[K],
   ) {
-    setValues((current) => ({ ...current, [key]: value }));
+    setValues((current) => {
+      const next = { ...current, [key]: value };
+
+      if (key === "jobDescription" || key === "roleTitle") {
+        next.isAiRole = suggestIsAiRole(
+          key === "roleTitle" ? String(value) : current.roleTitle,
+          key === "jobDescription" ? String(value) : current.jobDescription,
+        );
+      }
+
+      return next;
+    });
     setErrors((current) => {
       const next = { ...current };
       delete next[key];
@@ -404,6 +422,32 @@ export function OpportunityForm({
               className="h-4 w-4 rounded border-slate-300"
             />
             Remind me 15 minutes before the interview
+          </label>
+        </div>
+      ) : null}
+
+      {enableJobDescriptionSave ? (
+        <div className="space-y-2">
+          <Label htmlFor="jobDescription">Job Description</Label>
+          <Textarea
+            id="jobDescription"
+            value={values.jobDescription}
+            onChange={(event) =>
+              updateField("jobDescription", event.target.value)
+            }
+            placeholder="Paste the full job description to save it to your JD library..."
+            className="min-h-[140px]"
+          />
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={values.isAiRole}
+              onChange={(event) =>
+                updateField("isAiRole", event.target.checked)
+              }
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            AI role (auto-suggested from job description)
           </label>
         </div>
       ) : null}

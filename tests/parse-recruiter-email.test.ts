@@ -15,6 +15,7 @@ const parsedEmail = {
   roleTitle: "Senior Software Engineer",
   contactDate: "2026-07-06",
   notes: "Remote role. Next step is a phone screen.",
+  jobDescription: null,
 };
 
 afterEach(() => {
@@ -30,6 +31,7 @@ describe("buildParseRecruiterEmailPrompt", () => {
 
     expect(prompt).toContain("Jane Smith <jane@acme.com>");
     expect(prompt).toContain("recruiterName");
+    expect(prompt).toContain("jobDescription");
     expect(prompt).toContain("Do not invent details");
   });
 });
@@ -66,6 +68,21 @@ describe("toOpportunityFormValues", () => {
       roleTitle: "Senior Software Engineer",
       contactDate: "2026-07-06",
       notes: "Remote role. Next step is a phone screen.",
+      jobDescription: "",
+      isAiRole: false,
+    });
+  });
+
+  it("maps extracted job descriptions and suggests AI roles", () => {
+    expect(
+      toOpportunityFormValues({
+        ...parsedEmail,
+        roleTitle: "AI Platform Lead",
+        jobDescription: "Own LLM deployment and MLOps.",
+      }),
+    ).toMatchObject({
+      jobDescription: "Own LLM deployment and MLOps.",
+      isAiRole: true,
     });
   });
 });

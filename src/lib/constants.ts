@@ -62,4 +62,6 @@ export const emptyOpportunityForm = {
   interviewTime: "",
   interviewReminderEnabled: false,
   notes: "",
+  jobDescription: "",
+  isAiRole: false,
 };
