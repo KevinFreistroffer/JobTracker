@@ -45,10 +45,40 @@ model Opportunity {
 }
 
 model JobDescription {
-  id          String   @id @default(uuid())
-  companyName String
-  roleTitle   String?
-  body        String   @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                       String                      @id @default(uuid())
+  companyName              String
+  roleTitle                String?
+  body                     String                      @db.Text
+  isAiRole                 Boolean                     @default(false)
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
+  aiRequirementOccurrences AiRequirementOccurrence[]
+  aiExtraction             JobDescriptionAiExtraction?
+}
+
+model AiRequirement {
+  id             String                    @id @default(uuid())
+  canonicalText  String                    @db.Text
+  category       String?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  occurrences    AiRequirementOccurrence[]
+}
+
+model AiRequirementOccurrence {
+  id               String          @id @default(uuid())
+  aiRequirementId  String
+  jobDescriptionId String
+  rawText          String          @db.Text
+  createdAt        DateTime        @default(now())
+  aiRequirement    AiRequirement   @relation(fields: [aiRequirementId], references: [id], onDelete: Cascade)
+  jobDescription   JobDescription  @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([aiRequirementId, jobDescriptionId, rawText])
+}
+
+model JobDescriptionAiExtraction {
+  jobDescriptionId String         @id
+  extractedAt      DateTime       @default(now())
+  jobDescription   JobDescription @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
 }

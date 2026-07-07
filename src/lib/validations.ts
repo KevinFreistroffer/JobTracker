@@ -1,5 +1,6 @@
 import { ContactType, OpportunityStatus } from "@prisma/client";
 import { z } from "zod";
+import { suggestIsAiRole } from "@/lib/suggest-is-ai-role";
 import { isInterviewStatus } from "@/lib/interview-datetime";
 
 const contactTypeSchema = z.nativeEnum(ContactType);
@@ -210,6 +211,7 @@ const jobDescriptionObjectSchema = z.object({
   companyName: z.string().trim().min(1, "Company name is required"),
   roleTitle: z.string().trim().optional(),
   body: z.string().trim().min(1, "Job description is required"),
+  isAiRole: z.boolean().optional(),
 });
 
 export const jobDescriptionInputSchema = jobDescriptionObjectSchema.transform(
@@ -217,13 +219,33 @@ export const jobDescriptionInputSchema = jobDescriptionObjectSchema.transform(
     companyName: data.companyName,
     roleTitle: normalizeOptionalText(data.roleTitle) ?? null,
     body: data.body,
+    isAiRole:
+      data.isAiRole ??
+      suggestIsAiRole(
+        normalizeOptionalText(data.roleTitle) ?? null,
+        data.body,
+      ),
   }),
 );
+
+export const jobDescriptionPatchSchema = z.object({
+  isAiRole: z.boolean(),
+});
 
 export const jobDescriptionInsightSchema = z.object({
   question: z.string().trim().min(1, "Question is required"),
 });
 
+export const aiRequirementExtractInputSchema = z.object({
+  force: z.boolean().optional(),
+});
+
+export type JobDescriptionPatchInput = z.infer<
+  typeof jobDescriptionPatchSchema
+>;
+export type AiRequirementExtractRequest = z.infer<
+  typeof aiRequirementExtractInputSchema
+>;
 export type JobDescriptionInput = z.infer<typeof jobDescriptionInputSchema>;
 export type JobDescriptionInsightInput = z.infer<
   typeof jobDescriptionInsightSchema

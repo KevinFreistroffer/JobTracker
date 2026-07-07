@@ -11,6 +11,7 @@ const tabs = [
   { href: "/application-materials", label: "Application Materials" },
   { href: "/interview-prep", label: "Interview Prep" },
   { href: "/jd-library", label: "JD Library" },
+  { href: "/ai-requirements", label: "AI Requirements" },
 ] as const;
 
 export function AppNav() {

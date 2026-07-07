@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,6 +26,7 @@ export type JobDescriptionRecord = {
   companyName: string;
   roleTitle: string | null;
   body: string;
+  isAiRole: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -34,6 +36,8 @@ type SavedJobDescriptionItemProps = {
   expanded: boolean;
   onToggle: () => void;
   onDelete: () => void;
+  onToggleAiRole: (isAiRole: boolean) => void;
+  isTogglingAiRole: boolean;
 };
 
 export function getJobDescriptionPreview(
@@ -61,6 +65,8 @@ export function SavedJobDescriptionItem({
   expanded,
   onToggle,
   onDelete,
+  onToggleAiRole,
+  isTogglingAiRole,
 }: SavedJobDescriptionItemProps) {
   const { text, needsTruncation } = getJobDescriptionPreview(
     jobDescription.body,
@@ -72,12 +78,17 @@ export function SavedJobDescriptionItem({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1 space-y-2">
           <div>
-            <h3 className="font-medium text-slate-900">
-              {jobDescription.companyName}
-              {jobDescription.roleTitle
-                ? ` — ${jobDescription.roleTitle}`
-                : ""}
-            </h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-medium text-slate-900">
+                {jobDescription.companyName}
+                {jobDescription.roleTitle
+                  ? ` — ${jobDescription.roleTitle}`
+                  : ""}
+              </h3>
+              {jobDescription.isAiRole ? (
+                <Badge variant="secondary">AI role</Badge>
+              ) : null}
+            </div>
             <p className="text-xs text-slate-500">
               Saved {format(new Date(jobDescription.createdAt), "MMM d, yyyy")}
             </p>
@@ -110,6 +121,17 @@ export function SavedJobDescriptionItem({
               {expanded ? "Show less" : "Show full description"}
             </Button>
           ) : null}
+
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={jobDescription.isAiRole}
+              disabled={isTogglingAiRole}
+              onChange={(event) => onToggleAiRole(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            AI role
+          </label>
         </div>
 
         <Button
@@ -140,6 +162,7 @@ export function JdLibrary() {
   const [copied, setCopied] = useState(false);
   const [deletingJobDescription, setDeletingJobDescription] =
     useState<JobDescriptionRecord | null>(null);
+  const [togglingAiRoleId, setTogglingAiRoleId] = useState<string | null>(null);
 
   const loadJobDescriptions = useCallback(async () => {
     setIsLoading(true);
@@ -211,6 +234,45 @@ export function JdLibrary() {
       );
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleToggleAiRole(
+    jobDescription: JobDescriptionRecord,
+    isAiRole: boolean,
+  ) {
+    setTogglingAiRoleId(jobDescription.id);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/job-descriptions/${jobDescription.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isAiRole }),
+        },
+      );
+
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(body?.error ?? "Failed to update AI role flag");
+      }
+
+      setJobDescriptions((current) =>
+        current.map((item) =>
+          item.id === jobDescription.id ? { ...item, isAiRole } : item,
+        ),
+      );
+    } catch (toggleError) {
+      setError(
+        toggleError instanceof Error
+          ? toggleError.message
+          : "Failed to update AI role flag",
+      );
+    } finally {
+      setTogglingAiRoleId(null);
     }
   }
 
@@ -350,6 +412,10 @@ export function JdLibrary() {
                   expanded={expandedIds.has(jobDescription.id)}
                   onToggle={() => toggleExpanded(jobDescription.id)}
                   onDelete={() => setDeletingJobDescription(jobDescription)}
+                  onToggleAiRole={(isAiRole) =>
+                    void handleToggleAiRole(jobDescription, isAiRole)
+                  }
+                  isTogglingAiRole={togglingAiRoleId === jobDescription.id}
                 />
               </li>
             ))}
