@@ -3,6 +3,7 @@ import { suggestIsAiRole } from "@/lib/suggest-is-ai-role";
 import { jobDescriptionInputSchema } from "@/lib/validations";
 
 export type SaveJobDescriptionFromOpportunityInput = {
+  opportunityId: string;
   companyName: string | null;
   roleTitle: string | null;
   jobDescription?: string | null;
@@ -10,6 +11,7 @@ export type SaveJobDescriptionFromOpportunityInput = {
 };
 
 export async function saveJobDescriptionFromOpportunity({
+  opportunityId,
   companyName,
   roleTitle,
   jobDescription,
@@ -36,6 +38,9 @@ export async function saveJobDescriptionFromOpportunity({
   }
 
   return prisma.jobDescription.create({
-    data: parsed.data,
+    data: {
+      ...parsed.data,
+      opportunityId,
+    },
   });
 }

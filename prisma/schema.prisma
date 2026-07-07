@@ -42,16 +42,19 @@ model Opportunity {
   notes          String?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
+  jobDescription JobDescription?
 }
 
 model JobDescription {
   id                       String                      @id @default(uuid())
+  opportunityId            String?                     @unique
   companyName              String
   roleTitle                String?
   body                     String                      @db.Text
   isAiRole                 Boolean                     @default(false)
   createdAt                DateTime                    @default(now())
   updatedAt                DateTime                    @updatedAt
+  opportunity              Opportunity?                @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
   aiRequirementOccurrences AiRequirementOccurrence[]
   aiExtraction             JobDescriptionAiExtraction?
 }

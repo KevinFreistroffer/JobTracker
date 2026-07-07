@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
     });
 
     const savedJobDescription = await saveJobDescriptionFromOpportunity({
+      opportunityId: opportunity.id,
       companyName: opportunity.companyName,
       roleTitle: opportunity.roleTitle,
       jobDescription,

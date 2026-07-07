@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DELETE as deleteOpportunity } from "@/app/api/opportunities/[id]/route";
 import { POST as createOpportunity } from "@/app/api/opportunities/route";
 import * as saveJobDescription from "@/lib/save-job-description-from-opportunity";
 
@@ -6,6 +7,8 @@ const prismaMock = vi.hoisted(() => ({
   opportunity: {
     create: vi.fn(),
     findMany: vi.fn(),
+    findUnique: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -69,6 +72,7 @@ describe("POST /api/opportunities", () => {
       },
     });
     expect(saveJobDescription.saveJobDescriptionFromOpportunity).toHaveBeenCalledWith({
+      opportunityId: "opp-1",
       companyName: "Acme",
       roleTitle: "AI Platform Lead",
       jobDescription: "Own LLM deployment and governance.",
@@ -110,6 +114,41 @@ describe("POST /api/opportunities", () => {
     expect(response.status).toBe(201);
     await expect(response.json()).resolves.toMatchObject({
       savedJobDescription: null,
+    });
+  });
+});
+
+describe("DELETE /api/opportunities/[id]", () => {
+  it("deletes the opportunity and relies on database cascade for linked job descriptions", async () => {
+    prismaMock.opportunity.findUnique.mockResolvedValue({
+      id: "opp-1",
+      contactType: null,
+      status: "NEW",
+      recruiterName: null,
+      recruiterEmail: null,
+      companyName: "Acme",
+      roleTitle: null,
+      contactDate: null,
+      interviewAt: null,
+      interviewReminderEnabled: false,
+      notes: "",
+      createdAt: new Date("2026-07-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-07-01T00:00:00.000Z"),
+    });
+    prismaMock.opportunity.delete.mockResolvedValue({
+      id: "opp-1",
+    });
+
+    const response = await deleteOpportunity(
+      new Request("http://localhost/api/opportunities/opp-1", {
+        method: "DELETE",
+      }),
+      { params: Promise.resolve({ id: "opp-1" }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(prismaMock.opportunity.delete).toHaveBeenCalledWith({
+      where: { id: "opp-1" },
     });
   });
 });

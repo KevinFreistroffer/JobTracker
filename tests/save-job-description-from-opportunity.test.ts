@@ -28,6 +28,7 @@ describe("saveJobDescriptionFromOpportunity", () => {
     });
 
     const result = await saveJobDescriptionFromOpportunity({
+      opportunityId: "opp-1",
       companyName: "Acme",
       roleTitle: "AI Lead",
       jobDescription: "Own LLM deployment.",
@@ -37,6 +38,7 @@ describe("saveJobDescriptionFromOpportunity", () => {
     expect(result).toMatchObject({ companyName: "Acme", isAiRole: true });
     expect(prismaMock.jobDescription.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
+        opportunityId: "opp-1",
         companyName: "Acme",
         roleTitle: "AI Lead",
         body: "Own LLM deployment.",
@@ -47,6 +49,7 @@ describe("saveJobDescriptionFromOpportunity", () => {
 
   it("skips saving when job description text is missing", async () => {
     const result = await saveJobDescriptionFromOpportunity({
+      opportunityId: "opp-1",
       companyName: "Acme",
       roleTitle: "Engineer",
       jobDescription: "",
@@ -58,6 +61,7 @@ describe("saveJobDescriptionFromOpportunity", () => {
 
   it("skips saving when company name is missing", async () => {
     const result = await saveJobDescriptionFromOpportunity({
+      opportunityId: "opp-1",
       companyName: null,
       roleTitle: "Engineer",
       jobDescription: "Build APIs.",
