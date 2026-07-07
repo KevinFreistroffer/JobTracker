@@ -110,4 +110,52 @@ describe("JdLibrary", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Python-heavy backend role\./)).toBeInTheDocument();
   });
+
+  it("shows the generated insight directly below the question form", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          {
+            id: "jd-1",
+            companyName: "Medallion",
+            roleTitle: "Senior Software Engineer",
+            body: "Python and React role.",
+            isAiRole: false,
+            createdAt: "2026-07-06T00:00:00.000Z",
+            updatedAt: "2026-07-06T00:00:00.000Z",
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          answer: "Python and React are common requirements.",
+        }),
+      });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<JdLibrary />);
+
+    await screen.findByText(/Saved Job Descriptions \(1\)/);
+
+    const question = "What do Python-heavy roles typically require?";
+    await user.click(screen.getByRole("button", { name: question }));
+    await user.click(screen.getByRole("button", { name: /generate insight/i }));
+
+    expect(
+      await screen.findByText(/Python and React are common requirements\./),
+    ).toBeInTheDocument();
+
+    const askSection = screen
+      .getByRole("heading", { name: /ask across your library/i })
+      .closest("form");
+    expect(askSection).toHaveTextContent(
+      "Python and React are common requirements.",
+    );
+    expect(askSection).toHaveTextContent(question);
+  });
 });

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -136,6 +136,12 @@ export function SavedJobDescriptionItem({
   );
 }
 
+const INSIGHT_SUGGESTIONS = [
+  "What do Python-heavy roles typically require?",
+  "What AI/ML skills appear most often?",
+  "Which roles emphasize cloud and DevOps experience?",
+] as const;
+
 export function JdLibrary() {
   const [jobDescriptions, setJobDescriptions] = useState<JobDescriptionRecord[]>(
     [],
@@ -144,6 +150,7 @@ export function JdLibrary() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
+  const [askedQuestion, setAskedQuestion] = useState<string | null>(null);
   const [answer, setAnswer] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [insightError, setInsightError] = useState<string | null>(null);
@@ -151,6 +158,7 @@ export function JdLibrary() {
   const [deletingJobDescription, setDeletingJobDescription] =
     useState<JobDescriptionRecord | null>(null);
   const [togglingAiRoleId, setTogglingAiRoleId] = useState<string | null>(null);
+  const insightAnswerRef = useRef<HTMLDivElement>(null);
 
   const loadJobDescriptions = useCallback(async () => {
     setIsLoading(true);
@@ -195,8 +203,14 @@ export function JdLibrary() {
 
   async function handleGenerateInsight(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) {
+      return;
+    }
+
     setInsightError(null);
     setAnswer(null);
+    setAskedQuestion(null);
     setCopied(false);
     setIsGenerating(true);
 
@@ -204,7 +218,7 @@ export function JdLibrary() {
       const response = await fetch("/api/job-descriptions/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question: trimmedQuestion }),
       });
 
       const body = await response.json().catch(() => null);
@@ -213,7 +227,14 @@ export function JdLibrary() {
         throw new Error(body?.error ?? "Failed to generate insight");
       }
 
+      setAskedQuestion(trimmedQuestion);
       setAnswer(body.answer as string);
+      window.requestAnimationFrame(() => {
+        insightAnswerRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      });
     } catch (generateError) {
       setInsightError(
         generateError instanceof Error
@@ -320,42 +341,6 @@ export function JdLibrary() {
         </div>
       ) : null}
 
-      <form
-        className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 sm:p-6"
-        onSubmit={(event) => void handleGenerateInsight(event)}
-      >
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">
-            Ask Across Your Library
-          </h2>
-          <p className="text-sm text-slate-500">
-            Ask open-ended questions like what Python-heavy roles typically
-            require.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="insightQuestion">Question</Label>
-          <Textarea
-            id="insightQuestion"
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            placeholder="What do Python-heavy roles typically require?"
-            className="min-h-[120px]"
-            required
-          />
-        </div>
-
-        <Button
-          type="submit"
-          disabled={
-            isGenerating || question.trim().length === 0 || jobDescriptions.length === 0
-          }
-        >
-          {isGenerating ? "Generating..." : "Generate Insight"}
-        </Button>
-      </form>
-
       <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -411,30 +396,100 @@ export function JdLibrary() {
         )}
       </div>
 
-      {insightError ? (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {insightError}
-        </div>
-      ) : null}
-
-      {answer ? (
-        <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4 sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-slate-900">Insight</h2>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void handleCopy()}
-            >
-              {copied ? "Copied!" : "Copy"}
-            </Button>
-          </div>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-            {answer}
+      <form
+        className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 sm:p-6"
+        onSubmit={(event) => void handleGenerateInsight(event)}
+      >
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Ask Across Your Library
+          </h2>
+          <p className="text-sm text-slate-500">
+            Ask a question about patterns in your saved job descriptions. The
+            answer appears below.
+            {!isLoading && jobDescriptions.length > 0
+              ? ` Searching ${jobDescriptions.length} saved job description${
+                  jobDescriptions.length === 1 ? "" : "s"
+                }.`
+              : ""}
           </p>
         </div>
-      ) : null}
+
+        {jobDescriptions.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {INSIGHT_SUGGESTIONS.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                onClick={() => setQuestion(suggestion)}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="space-y-2">
+          <Label htmlFor="insightQuestion">Your question</Label>
+          <Textarea
+            id="insightQuestion"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder="What do Python-heavy roles typically require?"
+            className="min-h-[120px]"
+            required
+          />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={
+            isGenerating || question.trim().length === 0 || jobDescriptions.length === 0
+          }
+        >
+          {isGenerating ? "Generating..." : "Generate Insight"}
+        </Button>
+
+        {isGenerating ? (
+          <p className="text-sm text-slate-500">Analyzing your job descriptions...</p>
+        ) : null}
+
+        {insightError ? (
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {insightError}
+          </div>
+        ) : null}
+
+        {answer && askedQuestion ? (
+          <div
+            ref={insightAnswerRef}
+            className="space-y-3 rounded-md border border-slate-200 bg-slate-50 p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                  Answer
+                </p>
+                <p className="text-sm font-medium text-slate-900">
+                  {askedQuestion}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void handleCopy()}
+              >
+                {copied ? "Copied!" : "Copy"}
+              </Button>
+            </div>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+              {answer}
+            </p>
+          </div>
+        ) : null}
+      </form>
 
       <AlertDialog
         open={deletingJobDescription !== null}
