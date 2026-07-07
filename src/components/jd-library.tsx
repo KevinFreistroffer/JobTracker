@@ -383,7 +383,7 @@ export function JdLibrary() {
                 href="/application-materials"
                 className="font-medium text-slate-900 underline underline-offset-2"
               >
-                Application Materials
+                Application &amp; Prep
               </Link>
               .
             </p>
@@ -399,7 +399,7 @@ export function JdLibrary() {
               href="/application-materials"
               className="font-medium underline underline-offset-2"
             >
-              Application Materials
+              Application &amp; Prep
             </Link>{" "}
             and click Generate Materials to add your first entry.
           </div>

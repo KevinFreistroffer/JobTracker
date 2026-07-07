@@ -20,11 +20,8 @@ describe("AppNav", () => {
       "/",
     );
     expect(
-      screen.getByRole("link", { name: "Application Materials" }),
+      screen.getByRole("link", { name: "Application & Prep" }),
     ).toHaveAttribute("href", "/application-materials");
-    expect(
-      screen.getByRole("link", { name: "Interview Prep" }),
-    ).toHaveAttribute("href", "/interview-prep");
     expect(screen.getByRole("link", { name: "JD Library" })).toHaveAttribute(
       "href",
       "/jd-library",

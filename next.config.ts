@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         destination: "/application-materials",
         permanent: true,
       },
+      {
+        source: "/interview-prep",
+        destination: "/application-materials",
+        permanent: true,
+      },
     ];
   },
 };

@@ -261,7 +261,7 @@ export function AiRequirements() {
               href="/application-materials"
               className="font-medium underline underline-offset-2"
             >
-              Application Materials
+              Application &amp; Prep
             </Link>{" "}
             first.
           </div>

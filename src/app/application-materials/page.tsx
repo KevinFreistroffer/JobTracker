@@ -1,10 +1,10 @@
 import { AppShell } from "@/components/app-shell";
-import { ApplicationMaterialsForm } from "@/components/application-materials-form";
+import { ApplicationWorkspace } from "@/components/application-workspace";
 
 export default function ApplicationMaterialsPage() {
   return (
     <AppShell>
-      <ApplicationMaterialsForm />
+      <ApplicationWorkspace />
     </AppShell>
   );
 }

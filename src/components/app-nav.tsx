@@ -8,8 +8,7 @@ import { cn } from "@/lib/utils";
 
 const tabs = [
   { href: "/", label: "Job Tracker" },
-  { href: "/application-materials", label: "Application Materials" },
-  { href: "/interview-prep", label: "Interview Prep" },
+  { href: "/application-materials", label: "Application & Prep" },
   { href: "/jd-library", label: "JD Library" },
   { href: "/ai-requirements", label: "AI Requirements" },
 ] as const;
