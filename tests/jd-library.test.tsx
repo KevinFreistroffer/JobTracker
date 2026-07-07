@@ -39,11 +39,12 @@ describe("SavedJobDescriptionItem", () => {
     companyName: "Medallion",
     roleTitle: "Senior Software Engineer",
     body: `${"Build healthcare software. ".repeat(20)}`,
+    isAiRole: false,
     createdAt: "2026-07-06T00:00:00.000Z",
     updatedAt: "2026-07-06T00:00:00.000Z",
   };
 
-  it("expands and collapses the job description on click", async () => {
+  it("expands only via the show full description button", async () => {
     const user = userEvent.setup();
     const onToggle = vi.fn();
     const onDelete = vi.fn();
@@ -54,11 +55,16 @@ describe("SavedJobDescriptionItem", () => {
         expanded={false}
         onToggle={onToggle}
         onDelete={onDelete}
+        onToggleAiRole={vi.fn()}
+        isTogglingAiRole={false}
       />,
     );
 
     expect(screen.getByText(/Build healthcare software\./)).toBeInTheDocument();
     expect(screen.queryByText(jobDescription.body)).not.toBeInTheDocument();
+
+    await user.click(screen.getByText(/Build healthcare software\./));
+    expect(onToggle).not.toHaveBeenCalled();
 
     await user.click(
       screen.getByRole("button", { name: /show full description/i }),

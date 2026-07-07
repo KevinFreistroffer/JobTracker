@@ -94,21 +94,9 @@ export function SavedJobDescriptionItem({
             </p>
           </div>
 
-          <button
-            type="button"
-            className="w-full text-left"
-            onClick={() => {
-              if (needsTruncation) {
-                onToggle();
-              }
-            }}
-            aria-expanded={needsTruncation ? expanded : undefined}
-            disabled={!needsTruncation}
-          >
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-              {text}
-            </p>
-          </button>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+            {text}
+          </p>
 
           {needsTruncation ? (
             <Button
