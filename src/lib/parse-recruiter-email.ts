@@ -1,5 +1,6 @@
 import { ContactType } from "@prisma/client";
 import { z } from "zod";
+import { suggestIsAiRole } from "@/lib/suggest-is-ai-role";
 
 export type ParseRecruiterEmailInput = {
   emailText: string;
@@ -122,9 +123,6 @@ export async function parseRecruiterEmail(
 
   return parseRecruiterEmailResponse(content);
 }
-
-import { ContactType } from "@prisma/client";
-import { suggestIsAiRole } from "@/lib/suggest-is-ai-role";
 
 export function toOpportunityFormValues(parsed: ParsedRecruiterEmail) {
   const jobDescription = parsed.jobDescription ?? "";
