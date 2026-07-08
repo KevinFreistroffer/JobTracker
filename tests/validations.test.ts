@@ -214,4 +214,26 @@ describe("opportunityUpdateSchema", () => {
       expect("isAiRole" in result.data).toBe(false);
     }
   });
+
+  it("archives an opportunity when archived is true", () => {
+    const result = opportunityUpdateSchema.safeParse({
+      archived: true,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.archivedAt).toBeInstanceOf(Date);
+    }
+  });
+
+  it("restores an opportunity when archived is false", () => {
+    const result = opportunityUpdateSchema.safeParse({
+      archived: false,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.archivedAt).toBeNull();
+    }
+  });
 });

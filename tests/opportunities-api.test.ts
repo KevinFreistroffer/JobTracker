@@ -1,6 +1,13 @@
+import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DELETE as deleteOpportunity } from "@/app/api/opportunities/[id]/route";
-import { POST as createOpportunity } from "@/app/api/opportunities/route";
+import {
+  DELETE as deleteOpportunity,
+  PATCH as updateOpportunity,
+} from "@/app/api/opportunities/[id]/route";
+import {
+  GET as listOpportunities,
+  POST as createOpportunity,
+} from "@/app/api/opportunities/route";
 import * as saveJobDescription from "@/lib/save-job-description-from-opportunity";
 
 const prismaMock = vi.hoisted(() => ({
@@ -8,6 +15,7 @@ const prismaMock = vi.hoisted(() => ({
     create: vi.fn(),
     findMany: vi.fn(),
     findUnique: vi.fn(),
+    update: vi.fn(),
     delete: vi.fn(),
   },
 }));
@@ -34,6 +42,7 @@ describe("POST /api/opportunities", () => {
       interviewAt: null,
       interviewReminderEnabled: false,
       notes: "",
+      archivedAt: null,
       createdAt: new Date("2026-07-01T00:00:00.000Z"),
       updatedAt: new Date("2026-07-01T00:00:00.000Z"),
     });
@@ -93,6 +102,7 @@ describe("POST /api/opportunities", () => {
       interviewAt: null,
       interviewReminderEnabled: false,
       notes: "",
+      archivedAt: null,
       createdAt: new Date("2026-07-01T00:00:00.000Z"),
       updatedAt: new Date("2026-07-01T00:00:00.000Z"),
     });
@@ -118,6 +128,149 @@ describe("POST /api/opportunities", () => {
   });
 });
 
+describe("GET /api/opportunities", () => {
+  it("defaults to active opportunities only", async () => {
+    prismaMock.opportunity.findMany.mockResolvedValue([]);
+
+    const response = await listOpportunities(
+      new NextRequest("http://localhost/api/opportunities"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(prismaMock.opportunity.findMany).toHaveBeenCalledWith({
+      where: { archivedAt: null },
+      orderBy: { contactDate: "desc" },
+    });
+  });
+
+  it("filters archived opportunities when requested", async () => {
+    prismaMock.opportunity.findMany.mockResolvedValue([]);
+
+    const response = await listOpportunities(
+      new NextRequest("http://localhost/api/opportunities?archived=true"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(prismaMock.opportunity.findMany).toHaveBeenCalledWith({
+      where: { archivedAt: { not: null } },
+      orderBy: { contactDate: "desc" },
+    });
+  });
+});
+
+describe("PATCH /api/opportunities/[id]", () => {
+  it("archives an opportunity", async () => {
+    prismaMock.opportunity.findUnique.mockResolvedValue({
+      id: "opp-1",
+      contactType: null,
+      status: "REJECTED",
+      recruiterName: null,
+      recruiterEmail: null,
+      companyName: "Acme",
+      roleTitle: null,
+      contactDate: null,
+      interviewAt: null,
+      interviewReminderEnabled: false,
+      notes: "",
+      archivedAt: null,
+      createdAt: new Date("2026-07-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-07-01T00:00:00.000Z"),
+    });
+    prismaMock.opportunity.update.mockResolvedValue({
+      id: "opp-1",
+      contactType: null,
+      status: "REJECTED",
+      recruiterName: null,
+      recruiterEmail: null,
+      companyName: "Acme",
+      roleTitle: null,
+      contactDate: null,
+      interviewAt: null,
+      interviewReminderEnabled: false,
+      notes: "",
+      archivedAt: new Date("2026-07-08T00:00:00.000Z"),
+      createdAt: new Date("2026-07-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-07-08T00:00:00.000Z"),
+    });
+
+    const response = await updateOpportunity(
+      new Request("http://localhost/api/opportunities/opp-1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: true }),
+      }),
+      { params: Promise.resolve({ id: "opp-1" }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(prismaMock.opportunity.update).toHaveBeenCalledWith({
+      where: { id: "opp-1" },
+      data: expect.objectContaining({
+        archivedAt: expect.any(Date),
+      }),
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      companyName: "Acme",
+      archivedAt: "2026-07-08T00:00:00.000Z",
+    });
+  });
+
+  it("restores an archived opportunity", async () => {
+    prismaMock.opportunity.findUnique.mockResolvedValue({
+      id: "opp-1",
+      contactType: null,
+      status: "REJECTED",
+      recruiterName: null,
+      recruiterEmail: null,
+      companyName: "Acme",
+      roleTitle: null,
+      contactDate: null,
+      interviewAt: null,
+      interviewReminderEnabled: false,
+      notes: "",
+      archivedAt: new Date("2026-07-08T00:00:00.000Z"),
+      createdAt: new Date("2026-07-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-07-08T00:00:00.000Z"),
+    });
+    prismaMock.opportunity.update.mockResolvedValue({
+      id: "opp-1",
+      contactType: null,
+      status: "REJECTED",
+      recruiterName: null,
+      recruiterEmail: null,
+      companyName: "Acme",
+      roleTitle: null,
+      contactDate: null,
+      interviewAt: null,
+      interviewReminderEnabled: false,
+      notes: "",
+      archivedAt: null,
+      createdAt: new Date("2026-07-01T00:00:00.000Z"),
+      updatedAt: new Date("2026-07-08T12:00:00.000Z"),
+    });
+
+    const response = await updateOpportunity(
+      new Request("http://localhost/api/opportunities/opp-1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: false }),
+      }),
+      { params: Promise.resolve({ id: "opp-1" }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(prismaMock.opportunity.update).toHaveBeenCalledWith({
+      where: { id: "opp-1" },
+      data: expect.objectContaining({
+        archivedAt: null,
+      }),
+    });
+    await expect(response.json()).resolves.toMatchObject({
+      archivedAt: null,
+    });
+  });
+});
+
 describe("DELETE /api/opportunities/[id]", () => {
   it("deletes the opportunity and relies on database cascade for linked job descriptions", async () => {
     prismaMock.opportunity.findUnique.mockResolvedValue({
@@ -132,6 +285,7 @@ describe("DELETE /api/opportunities/[id]", () => {
       interviewAt: null,
       interviewReminderEnabled: false,
       notes: "",
+      archivedAt: null,
       createdAt: new Date("2026-07-01T00:00:00.000Z"),
       updatedAt: new Date("2026-07-01T00:00:00.000Z"),
     });

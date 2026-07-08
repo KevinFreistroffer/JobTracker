@@ -180,6 +180,9 @@ export const opportunityInputSchema = opportunityObjectSchema
   });
 
 export const opportunityUpdateSchema = opportunityCoreObjectSchema
+  .extend({
+    archived: z.boolean().optional(),
+  })
   .partial()
   .superRefine((data, ctx) => {
     if (data.recruiterEmail === undefined) {
@@ -194,7 +197,19 @@ export const opportunityUpdateSchema = opportunityCoreObjectSchema
       ctx,
     );
   })
-  .transform((data) => normalizeOpportunity(data));
+  .transform((data) => {
+    const { archived, ...rest } = data;
+    const normalized = normalizeOpportunity(rest);
+    const result: Record<string, unknown> = { ...normalized };
+
+    if (archived === true) {
+      result.archivedAt = new Date();
+    } else if (archived === false) {
+      result.archivedAt = null;
+    }
+
+    return result;
+  });
 
 export type OpportunityInput = z.infer<typeof opportunityInputSchema>;
 export type OpportunityUpdateInput = z.infer<typeof opportunityUpdateSchema>;
@@ -202,6 +217,7 @@ export type OpportunityUpdateInput = z.infer<typeof opportunityUpdateSchema>;
 export function serializeOpportunity<T extends {
   contactDate: Date | null;
   interviewAt: Date | null;
+  archivedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }>(opportunity: T) {
@@ -209,6 +225,7 @@ export function serializeOpportunity<T extends {
     ...opportunity,
     contactDate: opportunity.contactDate?.toISOString() ?? null,
     interviewAt: opportunity.interviewAt?.toISOString() ?? null,
+    archivedAt: opportunity.archivedAt?.toISOString() ?? null,
     createdAt: opportunity.createdAt.toISOString(),
     updatedAt: opportunity.updatedAt.toISOString(),
   };

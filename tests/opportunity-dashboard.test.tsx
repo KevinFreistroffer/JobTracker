@@ -15,6 +15,7 @@ const opportunityWithNotes: OpportunityRecord = {
   interviewAt: null,
   interviewReminderEnabled: false,
   notes: "Discussed remote options and comp range.",
+  archivedAt: null,
   createdAt: "2025-07-01T00:00:00.000Z",
   updatedAt: "2025-07-01T00:00:00.000Z",
 };
@@ -39,6 +40,43 @@ describe("OpportunityDashboard", () => {
       expect(
         screen.getAllByText(/Discussed remote options and comp range\./).length,
       ).toBeGreaterThan(0);
+    });
+  });
+
+  it("shows archive action for active opportunities", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [opportunityWithNotes],
+      }),
+    );
+
+    render(<OpportunityDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /archive/i }).length).toBeGreaterThan(0);
+    });
+  });
+
+  it("shows restore action for archived opportunities", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [
+          {
+            ...opportunityWithNotes,
+            archivedAt: "2025-07-08T00:00:00.000Z",
+          },
+        ],
+      }),
+    );
+
+    render(<OpportunityDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: /restore/i }).length).toBeGreaterThan(0);
     });
   });
 });

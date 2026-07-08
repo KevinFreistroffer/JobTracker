@@ -17,17 +17,25 @@ export async function GET(request: NextRequest) {
   try {
     const statusParam = request.nextUrl.searchParams.get("status");
     const contactTypeParam = request.nextUrl.searchParams.get("contactType");
+    const archivedParam = request.nextUrl.searchParams.get("archived");
     const search = request.nextUrl.searchParams.get("search")?.trim();
 
     const where: {
       status?: OpportunityStatus;
       contactType?: ContactType;
+      archivedAt?: Date | null | { not: null };
       OR?: Array<{
         companyName?: { contains: string; mode: "insensitive" };
         recruiterName?: { contains: string; mode: "insensitive" };
         roleTitle?: { contains: string; mode: "insensitive" };
       }>;
     } = {};
+
+    if (archivedParam === "true") {
+      where.archivedAt = { not: null };
+    } else if (archivedParam !== "all") {
+      where.archivedAt = null;
+    }
 
     if (
       statusParam &&

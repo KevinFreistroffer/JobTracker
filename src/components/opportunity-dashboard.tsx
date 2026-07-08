@@ -2,7 +2,7 @@
 
 import { ContactType } from "@prisma/client";
 import { format } from "date-fns";
-import { Bell, Pencil, Plus, Trash2 } from "lucide-react";
+import { Bell, Archive, ArchiveRestore, Pencil, Plus, Trash2 } from "lucide-react";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   OpportunityForm,
@@ -74,6 +74,7 @@ function formatInterviewAt(value: string | null) {
 function buildQuery(
   statusFilter: string,
   contactTypeFilter: string,
+  archivedFilter: string,
   search: string,
 ) {
   const params = new URLSearchParams();
@@ -83,11 +84,26 @@ function buildQuery(
   if (contactTypeFilter !== "ALL") {
     params.set("contactType", contactTypeFilter);
   }
+  if (archivedFilter === "archived") {
+    params.set("archived", "true");
+  } else if (archivedFilter === "all") {
+    params.set("archived", "all");
+  }
   if (search.trim()) {
     params.set("search", search.trim());
   }
   const query = params.toString();
   return query ? `?${query}` : "";
+}
+
+function getEmptyStateMessage(archivedFilter: string) {
+  if (archivedFilter === "archived") {
+    return "No archived opportunities.";
+  }
+  if (archivedFilter === "all") {
+    return "No opportunities found.";
+  }
+  return "No opportunities yet. Add your first recruiter email or call.";
 }
 
 export function OpportunityDashboard() {
@@ -96,11 +112,14 @@ export function OpportunityDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [contactTypeFilter, setContactTypeFilter] = useState("ALL");
+  const [archivedFilter, setArchivedFilter] = useState("active");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("contactDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [formOpen, setFormOpen] = useState(false);
   const [editingOpportunity, setEditingOpportunity] =
+    useState<OpportunityRecord | null>(null);
+  const [archivingOpportunity, setArchivingOpportunity] =
     useState<OpportunityRecord | null>(null);
   const [deletingOpportunity, setDeletingOpportunity] =
     useState<OpportunityRecord | null>(null);
@@ -111,7 +130,7 @@ export function OpportunityDashboard() {
 
     try {
       const response = await fetch(
-        `/api/opportunities${buildQuery(statusFilter, contactTypeFilter, search)}`,
+        `/api/opportunities${buildQuery(statusFilter, contactTypeFilter, archivedFilter, search)}`,
       );
       if (!response.ok) {
         throw new Error("Failed to load opportunities");
@@ -127,20 +146,25 @@ export function OpportunityDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, contactTypeFilter, search]);
+  }, [statusFilter, contactTypeFilter, archivedFilter, search]);
 
   useEffect(() => {
     void loadOpportunities();
   }, [loadOpportunities]);
 
-  useInterviewReminders({ opportunities });
+  const activeOpportunities = useMemo(
+    () => opportunities.filter((opportunity) => !opportunity.archivedAt),
+    [opportunities],
+  );
+
+  useInterviewReminders({ opportunities: activeOpportunities });
 
   const upcomingInterviewReminders = useMemo(() => {
     const now = new Date();
-    return opportunities.filter((opportunity) =>
+    return activeOpportunities.filter((opportunity) =>
       shouldNotifyInterview(opportunity, now),
     );
-  }, [opportunities]);
+  }, [activeOpportunities]);
 
   const sortedOpportunities = useMemo(() => {
     const copy = [...opportunities];
@@ -236,6 +260,42 @@ export function OpportunityDashboard() {
     await loadOpportunities();
   }
 
+  async function handleArchive() {
+    if (!archivingOpportunity) {
+      return;
+    }
+
+    const response = await fetch(
+      `/api/opportunities/${archivingOpportunity.id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: true }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to archive opportunity");
+    }
+
+    setArchivingOpportunity(null);
+    await loadOpportunities();
+  }
+
+  async function handleRestore(opportunity: OpportunityRecord) {
+    const response = await fetch(`/api/opportunities/${opportunity.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ archived: false }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to restore opportunity");
+    }
+
+    await loadOpportunities();
+  }
+
   async function handleDelete() {
     if (!deletingOpportunity) {
       return;
@@ -271,7 +331,7 @@ export function OpportunityDashboard() {
         </Button>
       </div>
 
-      <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-4">
+      <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 md:grid-cols-5">
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="search">Search</Label>
           <Input
@@ -280,6 +340,19 @@ export function OpportunityDashboard() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
+        </div>
+        <div className="space-y-2">
+          <Label>View</Label>
+          <Select value={archivedFilter} onValueChange={setArchivedFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Active" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label>Status</Label>
@@ -401,7 +474,7 @@ export function OpportunityDashboard() {
             ) : sortedOpportunities.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="py-8 text-center text-slate-500">
-                  No opportunities yet. Add your first recruiter email or call.
+                  {getEmptyStateMessage(archivedFilter)}
                 </TableCell>
               </TableRow>
             ) : (
@@ -455,14 +528,35 @@ export function OpportunityDashboard() {
                           <Pencil className="h-4 w-4" />
                           Edit
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setDeletingOpportunity(opportunity)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </Button>
+                        {opportunity.archivedAt ? (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void handleRestore(opportunity)}
+                            >
+                              <ArchiveRestore className="h-4 w-4" />
+                              Restore
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => setDeletingOpportunity(opportunity)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setArchivingOpportunity(opportunity)}
+                          >
+                            <Archive className="h-4 w-4" />
+                            Archive
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -485,7 +579,7 @@ export function OpportunityDashboard() {
           <p className="text-center text-slate-500">Loading opportunities...</p>
         ) : sortedOpportunities.length === 0 ? (
           <p className="text-center text-slate-500">
-            No opportunities yet. Add your first recruiter email or call.
+            {getEmptyStateMessage(archivedFilter)}
           </p>
         ) : (
           sortedOpportunities.map((opportunity) => (
@@ -538,13 +632,32 @@ export function OpportunityDashboard() {
                 >
                   Edit
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setDeletingOpportunity(opportunity)}
-                >
-                  Delete
-                </Button>
+                {opportunity.archivedAt ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void handleRestore(opportunity)}
+                    >
+                      Restore
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setDeletingOpportunity(opportunity)}
+                    >
+                      Delete
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setArchivingOpportunity(opportunity)}
+                  >
+                    Archive
+                  </Button>
+                )}
               </div>
             </div>
           ))
@@ -580,6 +693,34 @@ export function OpportunityDashboard() {
       </Dialog>
 
       <AlertDialog
+        open={Boolean(archivingOpportunity)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setArchivingOpportunity(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive opportunity?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will move the entry for{" "}
+              <strong>
+                {archivingOpportunity?.companyName ?? "this opportunity"}
+              </strong>{" "}
+              to your archive. You can restore it later from the Archived view.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleArchive()}>
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
         open={Boolean(deletingOpportunity)}
         onOpenChange={(open) => {
           if (!open) {
@@ -589,10 +730,11 @@ export function OpportunityDashboard() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete opportunity?</AlertDialogTitle>
+            <AlertDialogTitle>Delete opportunity permanently?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently remove the entry for{" "}
               <strong>{deletingOpportunity?.companyName ?? "this opportunity"}</strong>.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

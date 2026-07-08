@@ -46,6 +46,7 @@ export type OpportunityRecord = {
   interviewAt: string | null;
   interviewReminderEnabled: boolean;
   notes: string | null;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
